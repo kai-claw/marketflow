@@ -32,41 +32,48 @@ export default function ChartView() {
   } = useStore();
 
   const stock = stocks.find(s => s.symbol === selectedSymbol);
-  const lastCandle = candleData[candleData.length - 1];
-  const prevCandle = candleData[candleData.length - 2];
+  const lastCandle = candleData.length > 0 ? candleData[candleData.length - 1] : null;
+  const prevCandle = candleData.length > 1 ? candleData[candleData.length - 2] : null;
   const dayChange = lastCandle && prevCandle ? ((lastCandle.close - prevCandle.close) / prevCandle.close) * 100 : 0;
-  const periodStart = candleData[0];
-  const periodChange = lastCandle && periodStart ? ((lastCandle.close - periodStart.open) / periodStart.open) * 100 : 0;
+  const periodStart = candleData.length > 0 ? candleData[0] : null;
+  const periodChange = lastCandle && periodStart && periodStart.open > 0
+    ? ((lastCandle.close - periodStart.open) / periodStart.open) * 100
+    : 0;
 
   return (
-    <div className="flex flex-col h-full">
+    <div className="flex flex-col h-full" id="panel-chart" role="tabpanel" aria-label="Charts">
       {/* Top bar - symbol info */}
-      <div className="flex items-center justify-between px-4 py-2.5 border-b border-[var(--border)] bg-[var(--bg-secondary)]">
-        <div className="flex items-center gap-4">
+      <div className="flex flex-wrap items-center justify-between px-2 sm:px-4 py-2.5 border-b border-[var(--border)] bg-[var(--bg-secondary)] gap-2">
+        <div className="flex items-center gap-2 sm:gap-4 flex-wrap">
           {/* Symbol selector */}
           <div className="flex items-center gap-2">
+            <label htmlFor="symbol-select" className="sr-only">Stock symbol</label>
             <select
+              id="symbol-select"
               value={selectedSymbol}
               onChange={(e) => setSelectedSymbol(e.target.value)}
-              className="bg-[var(--bg-card)] border border-[var(--border)] text-white px-2 py-1 rounded-md text-sm font-semibold focus:outline-none focus:border-blue-500"
+              className="bg-[var(--bg-card)] border border-[var(--border)] text-white px-2 py-1 rounded-md text-sm font-semibold focus:outline-none focus:border-blue-500 focus-visible:ring-2 focus-visible:ring-blue-500"
+              aria-label="Select stock symbol"
             >
               {POPULAR_SYMBOLS.map(s => (
                 <option key={s} value={s}>{s}</option>
               ))}
             </select>
             {stock && (
-              <span className="text-xs text-[var(--text-secondary)]">{stock.name}</span>
+              <span className="text-xs text-[var(--text-secondary)] hidden sm:inline">{stock.name}</span>
             )}
           </div>
 
           {/* Price */}
           {lastCandle && (
-            <div className="flex items-center gap-3">
-              <span className="text-lg font-bold font-mono">${lastCandle.close.toFixed(2)}</span>
-              <div className={`text-sm font-semibold ${dayChange >= 0 ? 'text-green-400' : 'text-red-400'}`}>
-                {dayChange >= 0 ? '▲' : '▼'} {Math.abs(dayChange).toFixed(2)}%
+            <div className="flex items-center gap-2 sm:gap-3">
+              <span className="text-base sm:text-lg font-bold font-mono">${lastCandle.close.toFixed(2)}</span>
+              <div className={`text-xs sm:text-sm font-semibold ${dayChange >= 0 ? 'text-green-400' : 'text-red-400'}`}>
+                <span aria-hidden="true">{dayChange >= 0 ? '▲' : '▼'}</span>
+                <span className="sr-only">{dayChange >= 0 ? 'up' : 'down'}</span>
+                {' '}{Math.abs(dayChange).toFixed(2)}%
               </div>
-              <div className="text-xs text-[var(--text-secondary)]">
+              <div className="text-xs text-[var(--text-secondary)] hidden md:block">
                 Period: <span className={periodChange >= 0 ? 'text-green-400' : 'text-red-400'}>
                   {periodChange >= 0 ? '+' : ''}{periodChange.toFixed(2)}%
                 </span>
@@ -76,10 +83,12 @@ export default function ChartView() {
         </div>
 
         {/* Timeframe buttons */}
-        <div className="flex gap-1 bg-[var(--bg-primary)] rounded-lg p-0.5">
+        <div className="flex gap-1 bg-[var(--bg-primary)] rounded-lg p-0.5" role="radiogroup" aria-label="Chart timeframe">
           {TIMEFRAMES.map(tf => (
             <button
               key={tf}
+              role="radio"
+              aria-checked={chartTimeframe === tf}
               onClick={() => setChartTimeframe(tf)}
               className={`px-2.5 py-1 rounded-md text-xs font-medium transition-all ${
                 chartTimeframe === tf
@@ -94,13 +103,14 @@ export default function ChartView() {
       </div>
 
       {/* Indicators bar */}
-      <div className="flex items-center gap-1.5 px-4 py-1.5 border-b border-[var(--border)] bg-[var(--bg-secondary)]">
-        <span className="text-[10px] text-[var(--text-secondary)] mr-1">Indicators:</span>
+      <div className="flex items-center gap-1 sm:gap-1.5 px-2 sm:px-4 py-1.5 border-b border-[var(--border)] bg-[var(--bg-secondary)] overflow-x-auto">
+        <span className="text-[10px] text-[var(--text-secondary)] mr-1 shrink-0">Indicators:</span>
         {INDICATORS.map(ind => (
           <button
             key={ind.id}
             onClick={() => toggleIndicator(ind.id)}
-            className={`px-2 py-0.5 rounded text-[10px] font-medium transition-all border ${
+            aria-pressed={activeIndicators.has(ind.id)}
+            className={`px-2 py-0.5 rounded text-[10px] font-medium transition-all border shrink-0 ${
               activeIndicators.has(ind.id)
                 ? 'border-opacity-60 text-white'
                 : 'border-transparent text-[var(--text-secondary)] hover:text-white'
@@ -117,7 +127,7 @@ export default function ChartView() {
 
       {/* OHLC bar */}
       {lastCandle && (
-        <div className="flex items-center gap-4 px-4 py-1 border-b border-[var(--border)] text-[10px] font-mono text-[var(--text-secondary)]">
+        <div className="flex items-center gap-2 sm:gap-4 px-2 sm:px-4 py-1 border-b border-[var(--border)] text-[10px] font-mono text-[var(--text-secondary)] overflow-x-auto" aria-label="OHLCV data">
           <span>O <span className="text-white">{lastCandle.open.toFixed(2)}</span></span>
           <span>H <span className="text-green-400">{lastCandle.high.toFixed(2)}</span></span>
           <span>L <span className="text-red-400">{lastCandle.low.toFixed(2)}</span></span>
@@ -128,18 +138,24 @@ export default function ChartView() {
 
       {/* Chart area */}
       <div className="flex-1 min-h-0">
-        <CandlestickChart />
+        {candleData.length > 0 ? (
+          <CandlestickChart />
+        ) : (
+          <div className="flex items-center justify-center h-full text-[var(--text-secondary)] text-sm">
+            No data available for {selectedSymbol}
+          </div>
+        )}
       </div>
 
       {/* RSI sub-chart */}
-      {activeIndicators.has('rsi') && (
+      {activeIndicators.has('rsi') && candleData.length > 15 && (
         <div className="border-t border-[var(--border)]">
           <RSIChart />
         </div>
       )}
 
       {/* MACD sub-chart */}
-      {activeIndicators.has('macd') && (
+      {activeIndicators.has('macd') && candleData.length > 26 && (
         <div className="border-t border-[var(--border)]">
           <MACDChart />
         </div>

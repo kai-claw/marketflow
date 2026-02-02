@@ -56,9 +56,13 @@ export default function PortfolioView() {
   const handleTrade = (type: 'buy' | 'sell') => {
     setTradeError(null);
     setTradeSuccess(null);
-    const shares = parseInt(tradeShares);
-    if (!shares || shares <= 0) {
-      setTradeError('Enter a valid number of shares');
+    const shares = parseInt(tradeShares, 10);
+    if (!Number.isFinite(shares) || shares <= 0) {
+      setTradeError('Enter a valid positive number of shares');
+      return;
+    }
+    if (tradePrice <= 0) {
+      setTradeError('Invalid stock price');
       return;
     }
     const error =
@@ -76,15 +80,18 @@ export default function PortfolioView() {
   };
 
   const handleReset = () => {
+    if (!window.confirm('Reset portfolio to $100,000? All positions and trades will be lost.')) return;
     resetPortfolio();
     setTradeError(null);
     setTradeSuccess(null);
   };
 
+  const cashPct = totalValue > 0 ? ((portfolio.cash / totalValue) * 100).toFixed(1) : '100.0';
+
   return (
-    <div className="flex flex-col h-full overflow-y-auto">
+    <div className="flex flex-col h-full overflow-y-auto" id="panel-portfolio" role="tabpanel" aria-label="Portfolio">
       {/* Portfolio summary cards */}
-      <div className="grid grid-cols-2 md:grid-cols-4 gap-3 p-4">
+      <div className="grid grid-cols-2 lg:grid-cols-4 gap-2 sm:gap-3 p-2 sm:p-4">
         <SummaryCard
           icon={<DollarSign size={18} />}
           label="Total Value"
@@ -110,36 +117,37 @@ export default function PortfolioView() {
           icon={<DollarSign size={18} />}
           label="Cash"
           value={`$${portfolio.cash.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`}
-          sub={`${((portfolio.cash / totalValue) * 100).toFixed(1)}% of portfolio`}
+          sub={`${cashPct}% of portfolio`}
           color="amber"
         />
       </div>
 
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-4 px-4 pb-4 flex-1 min-h-0">
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-2 sm:gap-4 px-2 sm:px-4 pb-2 sm:pb-4 flex-1 min-h-0">
         {/* Trade panel */}
-        <div className="bg-[var(--bg-secondary)] rounded-xl border border-[var(--border)] p-4 flex flex-col">
-          <div className="flex items-center justify-between mb-4">
+        <div className="bg-[var(--bg-secondary)] rounded-xl border border-[var(--border)] p-3 sm:p-4 flex flex-col" role="form" aria-label="Trade stocks">
+          <div className="flex items-center justify-between mb-3 sm:mb-4">
             <h2 className="text-sm font-semibold flex items-center gap-2">
-              <ShoppingCart size={16} />
+              <ShoppingCart size={16} aria-hidden="true" />
               Trade
             </h2>
             <button
               onClick={handleReset}
               className="flex items-center gap-1 text-[10px] text-[var(--text-secondary)] hover:text-white px-2 py-1 rounded hover:bg-[var(--bg-card)] transition-colors"
-              title="Reset portfolio to $100,000"
+              aria-label="Reset portfolio to $100,000"
             >
-              <RotateCcw size={12} />
+              <RotateCcw size={12} aria-hidden="true" />
               Reset
             </button>
           </div>
 
           <div className="space-y-3 flex-1">
             <div>
-              <label className="text-[10px] text-[var(--text-secondary)] mb-1 block">Symbol</label>
+              <label htmlFor="trade-symbol" className="text-[10px] text-[var(--text-secondary)] mb-1 block">Symbol</label>
               <select
+                id="trade-symbol"
                 value={tradeSymbol}
                 onChange={(e) => { setTradeSymbol(e.target.value); setTradeError(null); }}
-                className="w-full bg-[var(--bg-card)] border border-[var(--border)] text-white px-3 py-2 rounded-lg text-sm focus:outline-none focus:border-blue-500"
+                className="w-full bg-[var(--bg-card)] border border-[var(--border)] text-white px-3 py-2 rounded-lg text-sm focus:outline-none focus:border-blue-500 focus-visible:ring-2 focus-visible:ring-blue-500"
               >
                 {stocks.map((s) => (
                   <option key={s.symbol} value={s.symbol}>
@@ -150,18 +158,27 @@ export default function PortfolioView() {
             </div>
 
             <div>
-              <label className="text-[10px] text-[var(--text-secondary)] mb-1 block">Shares</label>
+              <label htmlFor="trade-shares" className="text-[10px] text-[var(--text-secondary)] mb-1 block">Shares</label>
               <input
+                id="trade-shares"
                 type="number"
                 min="1"
+                step="1"
+                inputMode="numeric"
+                pattern="[0-9]*"
                 value={tradeShares}
                 onChange={(e) => { setTradeShares(e.target.value); setTradeError(null); }}
-                className="w-full bg-[var(--bg-card)] border border-[var(--border)] text-white px-3 py-2 rounded-lg text-sm focus:outline-none focus:border-blue-500"
+                onKeyDown={(e) => {
+                  // Prevent decimal, minus, e
+                  if (e.key === '.' || e.key === '-' || e.key === 'e' || e.key === 'E') e.preventDefault();
+                }}
+                className="w-full bg-[var(--bg-card)] border border-[var(--border)] text-white px-3 py-2 rounded-lg text-sm focus:outline-none focus:border-blue-500 focus-visible:ring-2 focus-visible:ring-blue-500"
+                aria-describedby="trade-estimate"
               />
             </div>
 
             {tradePrice > 0 && (
-              <div className="bg-[var(--bg-card)] rounded-lg p-3 text-xs space-y-1">
+              <div id="trade-estimate" className="bg-[var(--bg-card)] rounded-lg p-3 text-xs space-y-1">
                 <div className="flex justify-between text-[var(--text-secondary)]">
                   <span>Price</span>
                   <span className="text-white font-mono">${tradePrice.toFixed(2)}</span>
@@ -169,7 +186,7 @@ export default function PortfolioView() {
                 <div className="flex justify-between text-[var(--text-secondary)]">
                   <span>Est. Total</span>
                   <span className="text-white font-mono">
-                    ${(tradePrice * (parseInt(tradeShares) || 0)).toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
+                    ${(tradePrice * (parseInt(tradeShares, 10) || 0)).toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
                   </span>
                 </div>
                 <div className="flex justify-between text-[var(--text-secondary)]">
@@ -184,27 +201,27 @@ export default function PortfolioView() {
             <div className="flex gap-2">
               <button
                 onClick={() => handleTrade('buy')}
-                className="flex-1 flex items-center justify-center gap-1.5 bg-green-600 hover:bg-green-500 text-white py-2.5 rounded-lg text-sm font-semibold transition-colors"
+                className="flex-1 flex items-center justify-center gap-1.5 bg-green-600 hover:bg-green-500 text-white py-2.5 rounded-lg text-sm font-semibold transition-colors focus-visible:ring-2 focus-visible:ring-green-400"
               >
-                <ArrowUpCircle size={16} />
+                <ArrowUpCircle size={16} aria-hidden="true" />
                 Buy
               </button>
               <button
                 onClick={() => handleTrade('sell')}
-                className="flex-1 flex items-center justify-center gap-1.5 bg-red-600 hover:bg-red-500 text-white py-2.5 rounded-lg text-sm font-semibold transition-colors"
+                className="flex-1 flex items-center justify-center gap-1.5 bg-red-600 hover:bg-red-500 text-white py-2.5 rounded-lg text-sm font-semibold transition-colors focus-visible:ring-2 focus-visible:ring-red-400"
               >
-                <ArrowDownCircle size={16} />
+                <ArrowDownCircle size={16} aria-hidden="true" />
                 Sell
               </button>
             </div>
 
             {tradeError && (
-              <div className="bg-red-900/30 border border-red-800/50 text-red-400 text-xs px-3 py-2 rounded-lg">
+              <div role="alert" className="bg-red-900/30 border border-red-800/50 text-red-400 text-xs px-3 py-2 rounded-lg">
                 {tradeError}
               </div>
             )}
             {tradeSuccess && (
-              <div className="bg-green-900/30 border border-green-800/50 text-green-400 text-xs px-3 py-2 rounded-lg">
+              <div role="status" className="bg-green-900/30 border border-green-800/50 text-green-400 text-xs px-3 py-2 rounded-lg">
                 {tradeSuccess}
               </div>
             )}
@@ -212,9 +229,9 @@ export default function PortfolioView() {
         </div>
 
         {/* Holdings */}
-        <div className="lg:col-span-2 bg-[var(--bg-secondary)] rounded-xl border border-[var(--border)] p-4 flex flex-col min-h-0">
+        <div className="lg:col-span-2 bg-[var(--bg-secondary)] rounded-xl border border-[var(--border)] p-3 sm:p-4 flex flex-col min-h-0">
           <h2 className="text-sm font-semibold mb-3 flex items-center gap-2">
-            <PieChart size={16} />
+            <PieChart size={16} aria-hidden="true" />
             Holdings
           </h2>
 
@@ -223,18 +240,18 @@ export default function PortfolioView() {
               No positions yet — make your first trade!
             </div>
           ) : (
-            <div className="overflow-y-auto flex-1 -mx-4 px-4">
-              <table className="w-full text-xs">
+            <div className="overflow-auto flex-1 -mx-3 sm:-mx-4 px-3 sm:px-4">
+              <table className="w-full text-xs" aria-label="Portfolio holdings">
                 <thead className="sticky top-0 bg-[var(--bg-secondary)]">
                   <tr className="text-[var(--text-secondary)] text-[10px] border-b border-[var(--border)]">
-                    <th className="text-left py-2 font-medium">Symbol</th>
-                    <th className="text-right py-2 font-medium">Shares</th>
-                    <th className="text-right py-2 font-medium">Avg Cost</th>
-                    <th className="text-right py-2 font-medium">Price</th>
-                    <th className="text-right py-2 font-medium">Mkt Value</th>
-                    <th className="text-right py-2 font-medium">P&L</th>
-                    <th className="text-right py-2 font-medium">Weight</th>
-                    <th className="text-right py-2 font-medium">Day</th>
+                    <th scope="col" className="text-left py-2 font-medium">Symbol</th>
+                    <th scope="col" className="text-right py-2 font-medium">Shares</th>
+                    <th scope="col" className="text-right py-2 font-medium hidden sm:table-cell">Avg Cost</th>
+                    <th scope="col" className="text-right py-2 font-medium">Price</th>
+                    <th scope="col" className="text-right py-2 font-medium hidden md:table-cell">Mkt Value</th>
+                    <th scope="col" className="text-right py-2 font-medium">P&L</th>
+                    <th scope="col" className="text-right py-2 font-medium hidden lg:table-cell">Weight</th>
+                    <th scope="col" className="text-right py-2 font-medium hidden sm:table-cell">Day</th>
                   </tr>
                 </thead>
                 <tbody>
@@ -243,22 +260,32 @@ export default function PortfolioView() {
                       key={p.symbol}
                       className="border-b border-[var(--border)]/50 hover:bg-[var(--bg-card)] cursor-pointer transition-colors"
                       onClick={() => { setSelectedSymbol(p.symbol); setView('chart'); }}
+                      onKeyDown={(e) => {
+                        if (e.key === 'Enter' || e.key === ' ') {
+                          e.preventDefault();
+                          setSelectedSymbol(p.symbol);
+                          setView('chart');
+                        }
+                      }}
+                      tabIndex={0}
+                      role="row"
+                      aria-label={`${p.symbol}: ${p.shares} shares, P&L ${p.pnl.absolute >= 0 ? '+' : ''}$${p.pnl.absolute.toFixed(2)}`}
                     >
                       <td className="py-2.5 font-semibold text-white">{p.symbol}</td>
                       <td className="py-2.5 text-right font-mono">{p.shares}</td>
-                      <td className="py-2.5 text-right font-mono">${p.avgCost.toFixed(2)}</td>
+                      <td className="py-2.5 text-right font-mono hidden sm:table-cell">${p.avgCost.toFixed(2)}</td>
                       <td className="py-2.5 text-right font-mono">${p.currentPrice.toFixed(2)}</td>
-                      <td className="py-2.5 text-right font-mono">
+                      <td className="py-2.5 text-right font-mono hidden md:table-cell">
                         ${p.marketValue.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
                       </td>
                       <td className={`py-2.5 text-right font-mono font-semibold ${p.pnl.absolute >= 0 ? 'text-green-400' : 'text-red-400'}`}>
                         {p.pnl.absolute >= 0 ? '+' : ''}${p.pnl.absolute.toFixed(2)}
-                        <span className="text-[10px] ml-1 opacity-70">
+                        <span className="text-[10px] ml-1 opacity-70 hidden sm:inline">
                           ({p.pnl.percent >= 0 ? '+' : ''}{p.pnl.percent.toFixed(1)}%)
                         </span>
                       </td>
-                      <td className="py-2.5 text-right font-mono">{p.weight.toFixed(1)}%</td>
-                      <td className={`py-2.5 text-right font-mono ${p.change >= 0 ? 'text-green-400' : 'text-red-400'}`}>
+                      <td className="py-2.5 text-right font-mono hidden lg:table-cell">{p.weight.toFixed(1)}%</td>
+                      <td className={`py-2.5 text-right font-mono hidden sm:table-cell ${p.change >= 0 ? 'text-green-400' : 'text-red-400'}`}>
                         {p.change >= 0 ? '+' : ''}{p.change.toFixed(2)}%
                       </td>
                     </tr>
@@ -272,25 +299,25 @@ export default function PortfolioView() {
 
       {/* Trade history */}
       {portfolio.trades.length > 0 && (
-        <div className="px-4 pb-4">
-          <div className="bg-[var(--bg-secondary)] rounded-xl border border-[var(--border)] p-4">
+        <div className="px-2 sm:px-4 pb-2 sm:pb-4">
+          <div className="bg-[var(--bg-secondary)] rounded-xl border border-[var(--border)] p-3 sm:p-4">
             <h2 className="text-sm font-semibold mb-3 flex items-center gap-2">
-              <Clock size={16} />
+              <Clock size={16} aria-hidden="true" />
               Trade History
               <span className="text-[10px] text-[var(--text-secondary)] font-normal">
                 ({portfolio.trades.length} trade{portfolio.trades.length !== 1 ? 's' : ''})
               </span>
             </h2>
             <div className="overflow-x-auto max-h-48 overflow-y-auto">
-              <table className="w-full text-xs">
+              <table className="w-full text-xs" aria-label="Trade history">
                 <thead className="sticky top-0 bg-[var(--bg-secondary)]">
                   <tr className="text-[var(--text-secondary)] text-[10px] border-b border-[var(--border)]">
-                    <th className="text-left py-2 font-medium">Time</th>
-                    <th className="text-left py-2 font-medium">Type</th>
-                    <th className="text-left py-2 font-medium">Symbol</th>
-                    <th className="text-right py-2 font-medium">Shares</th>
-                    <th className="text-right py-2 font-medium">Price</th>
-                    <th className="text-right py-2 font-medium">Total</th>
+                    <th scope="col" className="text-left py-2 font-medium">Time</th>
+                    <th scope="col" className="text-left py-2 font-medium">Type</th>
+                    <th scope="col" className="text-left py-2 font-medium">Symbol</th>
+                    <th scope="col" className="text-right py-2 font-medium">Shares</th>
+                    <th scope="col" className="text-right py-2 font-medium">Price</th>
+                    <th scope="col" className="text-right py-2 font-medium">Total</th>
                   </tr>
                 </thead>
                 <tbody>
@@ -345,13 +372,13 @@ function SummaryCard({ icon, label, value, sub, color }: {
   };
 
   return (
-    <div className={`bg-gradient-to-br ${colorMap[color]} border rounded-xl p-3.5`}>
+    <div className={`bg-gradient-to-br ${colorMap[color]} border rounded-xl p-2.5 sm:p-3.5`} aria-label={`${label}: ${value}`}>
       <div className="flex items-center gap-2 mb-1.5">
-        <span className={iconColorMap[color]}>{icon}</span>
+        <span className={iconColorMap[color]} aria-hidden="true">{icon}</span>
         <span className="text-[10px] text-[var(--text-secondary)] font-medium">{label}</span>
       </div>
-      <div className="text-lg font-bold font-mono leading-tight">{value}</div>
-      {sub && <div className={`text-xs mt-0.5 ${iconColorMap[color]} font-medium`}>{sub}</div>}
+      <div className="text-sm sm:text-lg font-bold font-mono leading-tight">{value}</div>
+      {sub && <div className={`text-[10px] sm:text-xs mt-0.5 ${iconColorMap[color]} font-medium`}>{sub}</div>}
     </div>
   );
 }

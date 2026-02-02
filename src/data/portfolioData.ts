@@ -40,8 +40,22 @@ export function executeTrade(
   shares: number,
   price: number
 ): { success: boolean; error?: string; portfolio: Portfolio } {
+  // Validate inputs
+  if (!Number.isFinite(shares) || shares <= 0 || !Number.isInteger(shares)) {
+    return { success: false, error: 'Shares must be a positive integer', portfolio };
+  }
+  if (!Number.isFinite(price) || price <= 0) {
+    return { success: false, error: 'Price must be a positive number', portfolio };
+  }
+
   const total = shares * price;
-  const newPortfolio = { ...portfolio, positions: [...portfolio.positions], trades: [...portfolio.trades] };
+  // Deep copy positions to avoid mutating original state
+  const newPositions = portfolio.positions.map(p => ({ ...p }));
+  const newPortfolio: Portfolio = {
+    ...portfolio,
+    positions: newPositions,
+    trades: [...portfolio.trades],
+  };
   
   if (type === 'buy') {
     if (total > portfolio.cash) {
@@ -50,27 +64,36 @@ export function executeTrade(
     
     newPortfolio.cash -= total;
     
-    const existing = newPortfolio.positions.find(p => p.symbol === symbol);
-    if (existing) {
+    const existingIdx = newPortfolio.positions.findIndex(p => p.symbol === symbol);
+    if (existingIdx >= 0) {
+      const existing = newPortfolio.positions[existingIdx];
       const totalShares = existing.shares + shares;
-      existing.avgCost = ((existing.avgCost * existing.shares) + (price * shares)) / totalShares;
-      existing.shares = totalShares;
-      existing.currentPrice = price;
+      newPortfolio.positions[existingIdx] = {
+        ...existing,
+        avgCost: ((existing.avgCost * existing.shares) + (price * shares)) / totalShares,
+        shares: totalShares,
+        currentPrice: price,
+      };
     } else {
       newPortfolio.positions.push({ symbol, shares, avgCost: price, currentPrice: price });
     }
   } else {
-    const existing = newPortfolio.positions.find(p => p.symbol === symbol);
+    const existingIdx = newPortfolio.positions.findIndex(p => p.symbol === symbol);
+    const existing = existingIdx >= 0 ? newPortfolio.positions[existingIdx] : null;
     if (!existing || existing.shares < shares) {
       return { success: false, error: `Insufficient shares. Have ${existing?.shares || 0}, trying to sell ${shares}`, portfolio };
     }
     
     newPortfolio.cash += total;
-    existing.shares -= shares;
-    existing.currentPrice = price;
     
-    if (existing.shares === 0) {
-      newPortfolio.positions = newPortfolio.positions.filter(p => p.symbol !== symbol);
+    if (existing.shares === shares) {
+      newPortfolio.positions = newPortfolio.positions.filter((_, i) => i !== existingIdx);
+    } else {
+      newPortfolio.positions[existingIdx] = {
+        ...existing,
+        shares: existing.shares - shares,
+        currentPrice: price,
+      };
     }
   }
   
@@ -91,18 +114,27 @@ export function getPortfolioValue(portfolio: Portfolio): number {
   const positionsValue = portfolio.positions.reduce(
     (sum, p) => sum + p.shares * p.currentPrice, 0
   );
-  return portfolio.cash + positionsValue;
+  const total = portfolio.cash + positionsValue;
+  return Number.isFinite(total) ? total : portfolio.cash;
 }
 
 export function getPortfolioReturn(portfolio: Portfolio): { absolute: number; percent: number } {
   const currentValue = getPortfolioValue(portfolio);
   const absolute = currentValue - portfolio.startingCash;
-  const percent = (absolute / portfolio.startingCash) * 100;
-  return { absolute, percent };
+  const percent = portfolio.startingCash > 0 ? (absolute / portfolio.startingCash) * 100 : 0;
+  return {
+    absolute: Number.isFinite(absolute) ? absolute : 0,
+    percent: Number.isFinite(percent) ? percent : 0,
+  };
 }
 
 export function getPositionPnL(position: Position): { absolute: number; percent: number } {
   const absolute = (position.currentPrice - position.avgCost) * position.shares;
-  const percent = ((position.currentPrice - position.avgCost) / position.avgCost) * 100;
-  return { absolute, percent };
+  const percent = position.avgCost > 0
+    ? ((position.currentPrice - position.avgCost) / position.avgCost) * 100
+    : 0;
+  return {
+    absolute: Number.isFinite(absolute) ? absolute : 0,
+    percent: Number.isFinite(percent) ? percent : 0,
+  };
 }

@@ -79,15 +79,21 @@ export function generateCandlestickData(
 // Technical indicators
 
 export function calculateSMA(data: Candle[], period: number): { time: string; value: number }[] {
+  if (period <= 0 || data.length < period) return [];
   const result: { time: string; value: number }[] = [];
-  for (let i = period - 1; i < data.length; i++) {
-    const sum = data.slice(i - period + 1, i + 1).reduce((s, c) => s + c.close, 0);
+  // Rolling sum avoids O(n*period) repeated slicing
+  let sum = 0;
+  for (let i = 0; i < period; i++) sum += data[i].close;
+  result.push({ time: data[period - 1].time, value: Number((sum / period).toFixed(2)) });
+  for (let i = period; i < data.length; i++) {
+    sum += data[i].close - data[i - period].close;
     result.push({ time: data[i].time, value: Number((sum / period).toFixed(2)) });
   }
   return result;
 }
 
 export function calculateEMA(data: Candle[], period: number): { time: string; value: number }[] {
+  if (period <= 0 || data.length < period) return [];
   const result: { time: string; value: number }[] = [];
   const multiplier = 2 / (period + 1);
   
@@ -105,6 +111,7 @@ export function calculateEMA(data: Candle[], period: number): { time: string; va
 }
 
 export function calculateRSI(data: Candle[], period: number = 14): { time: string; value: number }[] {
+  if (period <= 0 || data.length < period + 1) return [];
   const result: { time: string; value: number }[] = [];
   const changes = data.slice(1).map((c, i) => c.close - data[i].close);
   
@@ -181,6 +188,9 @@ export function calculateBollingerBands(data: Candle[], period: number = 20, std
   middle: { time: string; value: number }[];
   lower: { time: string; value: number }[];
 } {
+  const empty = { upper: [], middle: [], lower: [] };
+  if (period <= 0 || data.length < period) return empty;
+  
   const upper: { time: string; value: number }[] = [];
   const middle: { time: string; value: number }[] = [];
   const lower: { time: string; value: number }[] = [];
