@@ -2,15 +2,124 @@
 <html lang="en">
   <head>
     <meta charset="UTF-8" />
-    <link rel="icon" type="image/svg+xml" href="/marketflow/favicon.svg" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>MarketFlow — Stock Market Visualizer</title>
+    <meta name="description" content="Interactive stock market visualizer with treemap heatmap, candlestick charts with technical indicators (SMA, EMA, RSI, MACD, Bollinger Bands), and portfolio trading simulator." />
+    <meta name="author" content="Christian" />
+    <meta name="keywords" content="stock market, visualizer, treemap, heatmap, candlestick, technical indicators, portfolio, trading simulator, D3, React" />
+    <meta name="theme-color" content="#0a0e17" />
+    <link rel="canonical" href="https://kai-claw.github.io/marketflow/" />
+
+    <!-- Favicon -->
+    <link rel="icon" type="image/svg+xml" href="/marketflow/favicon.svg" />
+    <link rel="apple-touch-icon" href="/marketflow/favicon.svg" />
+
+    <!-- Open Graph -->
+    <meta property="og:title" content="MarketFlow — Stock Market Visualizer" />
+    <meta property="og:description" content="Interactive stock market visualizer with treemap heatmap, candlestick charts with technical indicators, and portfolio trading simulator." />
+    <meta property="og:type" content="website" />
+    <meta property="og:url" content="https://kai-claw.github.io/marketflow/" />
+    <meta property="og:site_name" content="MarketFlow" />
+    <meta property="og:image" content="https://kai-claw.github.io/marketflow/og-image.svg" />
+    <meta property="og:image:alt" content="MarketFlow stock market heatmap and chart visualization" />
+
+    <!-- Twitter Card -->
+    <meta name="twitter:card" content="summary_large_image" />
+    <meta name="twitter:title" content="MarketFlow — Stock Market Visualizer" />
+    <meta name="twitter:description" content="Interactive stock market visualizer with treemap heatmap, candlestick charts, and portfolio simulator." />
+    <meta name="twitter:image" content="https://kai-claw.github.io/marketflow/og-image.svg" />
+    <meta name="twitter:image:alt" content="MarketFlow stock market visualization" />
+
+    <!-- JSON-LD -->
+    <script type="application/ld+json">
+    {
+      "@context": "https://schema.org",
+      "@type": "WebApplication",
+      "name": "MarketFlow",
+      "description": "Interactive stock market visualizer with treemap heatmap, candlestick charts with technical indicators, and portfolio trading simulator.",
+      "url": "https://kai-claw.github.io/marketflow/",
+      "applicationCategory": "FinanceApplication",
+      "operatingSystem": "Web",
+      "offers": { "@type": "Offer", "price": "0" },
+      "author": { "@type": "Person", "name": "Christian" },
+      "license": "https://opensource.org/licenses/MIT"
+    }
+    </script>
+
+    <!-- Fonts -->
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
-    <script type="module" crossorigin src="/marketflow/assets/index-DsYihboM.js"></script>
-    <link rel="stylesheet" crossorigin href="/marketflow/assets/index-CY7Ccojg.css">
+
+    <!-- Loading spinner -->
+    <style>
+      #loading-spinner {
+        position: fixed; inset: 0; z-index: 9999;
+        background: #0a0e17;
+        display: flex; flex-direction: column;
+        align-items: center; justify-content: center;
+        transition: opacity 0.4s ease;
+      }
+      #loading-spinner.fade-out { opacity: 0; pointer-events: none; }
+      .spinner-bar {
+        width: 4px; height: 32px; margin: 0 3px;
+        background: #22c55e; border-radius: 2px;
+        animation: barPulse 1s ease-in-out infinite;
+      }
+      .spinner-bar:nth-child(1) { animation-delay: 0s; height: 20px; }
+      .spinner-bar:nth-child(2) { animation-delay: 0.15s; height: 32px; }
+      .spinner-bar:nth-child(3) { animation-delay: 0.3s; height: 16px; }
+      .spinner-bar:nth-child(4) { animation-delay: 0.45s; height: 28px; }
+      .spinner-bar:nth-child(5) { animation-delay: 0.6s; height: 24px; }
+      @keyframes barPulse {
+        0%, 100% { transform: scaleY(1); opacity: 0.5; }
+        50% { transform: scaleY(1.6); opacity: 1; }
+      }
+      .spinner-label {
+        color: #94a3b8; font-family: Inter, sans-serif;
+        font-size: 12px; margin-top: 16px; letter-spacing: 0.05em;
+      }
+    </style>
+    <script type="module" crossorigin src="/marketflow/assets/index-CPb8eVhL.js"></script>
+    <link rel="stylesheet" crossorigin href="/marketflow/assets/index-DbB9cZIq.css">
   </head>
   <body>
+    <!-- Loading spinner -->
+    <div id="loading-spinner" aria-label="Loading MarketFlow">
+      <div style="display:flex; align-items:end;">
+        <div class="spinner-bar"></div>
+        <div class="spinner-bar"></div>
+        <div class="spinner-bar"></div>
+        <div class="spinner-bar"></div>
+        <div class="spinner-bar"></div>
+      </div>
+      <div class="spinner-label">MarketFlow</div>
+    </div>
+
+    <!-- Noscript fallback -->
+    <noscript>
+      <div style="background:#0a0e17;color:#e2e8f0;display:flex;align-items:center;justify-content:center;min-height:100vh;font-family:Inter,sans-serif;text-align:center;padding:2rem;">
+        <div>
+          <h1 style="font-size:1.5rem;margin-bottom:0.5rem;">MarketFlow</h1>
+          <p style="color:#94a3b8;">JavaScript is required to run this application.</p>
+        </div>
+      </div>
+    </noscript>
+
     <div id="root"></div>
+    <script>
+      // Fade out loading spinner once React mounts
+      const observer = new MutationObserver(() => {
+        const root = document.getElementById('root');
+        if (root && root.children.length > 0) {
+          const spinner = document.getElementById('loading-spinner');
+          if (spinner) {
+            spinner.classList.add('fade-out');
+            setTimeout(() => spinner.remove(), 400);
+          }
+          observer.disconnect();
+        }
+      });
+      observer.observe(document.getElementById('root'), { childList: true });
+    </script>
   </body>
 </html>

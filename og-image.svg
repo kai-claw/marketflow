@@ -1,0 +1,49 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1200 630" width="1200" height="630">
+  <defs>
+    <linearGradient id="bg" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0%" stop-color="#0a0e17"/>
+      <stop offset="100%" stop-color="#111827"/>
+    </linearGradient>
+    <linearGradient id="line" x1="0" y1="0" x2="1" y2="0">
+      <stop offset="0%" stop-color="#22c55e"/>
+      <stop offset="100%" stop-color="#3b82f6"/>
+    </linearGradient>
+  </defs>
+  <rect width="1200" height="630" fill="url(#bg)"/>
+  <!-- Grid -->
+  <g stroke="#1e2a3a" stroke-width="0.5" opacity="0.5">
+    <line x1="100" y1="100" x2="100" y2="480"/><line x1="320" y1="100" x2="320" y2="480"/>
+    <line x1="540" y1="100" x2="540" y2="480"/><line x1="760" y1="100" x2="760" y2="480"/>
+    <line x1="980" y1="100" x2="980" y2="480"/>
+    <line x1="100" y1="190" x2="1100" y2="190"/><line x1="100" y1="290" x2="1100" y2="290"/>
+    <line x1="100" y1="390" x2="1100" y2="390"/><line x1="100" y1="480" x2="1100" y2="480"/>
+  </g>
+  <!-- Candlesticks -->
+  <g>
+    <line x1="180" y1="220" x2="180" y2="350" stroke="#22c55e" stroke-width="1.5"/>
+    <rect x="172" y="240" width="16" height="80" fill="#22c55e" rx="1"/>
+    <line x1="260" y1="200" x2="260" y2="380" stroke="#ef4444" stroke-width="1.5"/>
+    <rect x="252" y="220" width="16" height="120" fill="#ef4444" rx="1"/>
+    <line x1="340" y1="180" x2="340" y2="320" stroke="#22c55e" stroke-width="1.5"/>
+    <rect x="332" y="200" width="16" height="90" fill="#22c55e" rx="1"/>
+    <line x1="420" y1="150" x2="420" y2="300" stroke="#22c55e" stroke-width="1.5"/>
+    <rect x="412" y="170" width="16" height="100" fill="#22c55e" rx="1"/>
+    <line x1="500" y1="190" x2="500" y2="340" stroke="#ef4444" stroke-width="1.5"/>
+    <rect x="492" y="210" width="16" height="100" fill="#ef4444" rx="1"/>
+    <line x1="580" y1="160" x2="580" y2="310" stroke="#22c55e" stroke-width="1.5"/>
+    <rect x="572" y="180" width="16" height="95" fill="#22c55e" rx="1"/>
+    <line x1="660" y1="140" x2="660" y2="270" stroke="#22c55e" stroke-width="1.5"/>
+    <rect x="652" y="155" width="16" height="85" fill="#22c55e" rx="1"/>
+    <line x1="740" y1="170" x2="740" y2="300" stroke="#ef4444" stroke-width="1.5"/>
+    <rect x="732" y="190" width="16" height="80" fill="#ef4444" rx="1"/>
+    <line x1="820" y1="130" x2="820" y2="260" stroke="#22c55e" stroke-width="1.5"/>
+    <rect x="812" y="145" width="16" height="85" fill="#22c55e" rx="1"/>
+    <line x1="900" y1="120" x2="900" y2="240" stroke="#22c55e" stroke-width="1.5"/>
+    <rect x="892" y="135" width="16" height="75" fill="#22c55e" rx="1"/>
+  </g>
+  <!-- Trend line -->
+  <polyline points="180,280 260,300 340,245 420,220 500,260 580,230 660,197 740,235 820,187 900,173 980,155" fill="none" stroke="url(#line)" stroke-width="3" stroke-linecap="round" stroke-linejoin="round" opacity="0.7"/>
+  <!-- Title -->
+  <text x="600" y="560" text-anchor="middle" fill="#e2e8f0" font-family="Inter,sans-serif" font-size="42" font-weight="700">MarketFlow</text>
+  <text x="600" y="595" text-anchor="middle" fill="#94a3b8" font-family="Inter,sans-serif" font-size="18">Stock Market Visualizer</text>
+</svg>
