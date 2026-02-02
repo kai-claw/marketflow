@@ -1,10 +1,11 @@
-import { useStore, type ChartTimeframe, type Indicator } from '../store';
+import { useEffect, useRef, useState, useCallback } from 'react';
+import { useStore, type ChartTimeframe, type Indicator, CINEMATIC_STOCKS, CINEMATIC_INTERVAL } from '../store';
 import { STOCK_PRESETS } from '../data/candlestickData';
 import CandlestickChart from './CandlestickChart';
 import RSIChart from './RSIChart';
 import MACDChart from './MACDChart';
 import ComparisonChart from './ComparisonChart';
-import { GitCompareArrows } from 'lucide-react';
+import { GitCompareArrows, Play, Pause } from 'lucide-react';
 
 const TIMEFRAMES: ChartTimeframe[] = ['1M', '3M', '6M', '1Y'];
 
@@ -33,7 +34,61 @@ export default function ChartView() {
     stocks,
     comparisonMode,
     setComparisonMode,
+    cinematicActive,
+    setCinematicActive,
   } = useStore();
+
+  const [cinematicIndex, setCinematicIndex] = useState(0);
+  const [cinematicProgress, setCinematicProgress] = useState(0);
+  const progressRafRef = useRef<number>(0);
+
+  // Cinematic autoplay — cycle through featured stocks
+  const toggleCinematic = useCallback(() => {
+    setCinematicActive(!cinematicActive);
+    if (!cinematicActive) {
+      // Starting: find current stock in cinematic list or start at 0
+      const idx = CINEMATIC_STOCKS.indexOf(selectedSymbol);
+      setCinematicIndex(idx >= 0 ? idx : 0);
+      setCinematicProgress(0);
+    }
+  }, [cinematicActive, setCinematicActive, selectedSymbol]);
+
+  useEffect(() => {
+    if (!cinematicActive) return;
+
+    let startTime = Date.now();
+    let cancelled = false;
+    
+    // Set the initial stock
+    setSelectedSymbol(CINEMATIC_STOCKS[cinematicIndex]);
+    
+    const tick = () => {
+      if (cancelled) return;
+      const elapsed = Date.now() - startTime;
+      const progress = Math.min(elapsed / CINEMATIC_INTERVAL, 1);
+      setCinematicProgress(progress);
+      
+      if (progress >= 1) {
+        // Advance to next stock
+        startTime = Date.now();
+        setCinematicIndex(prev => {
+          const next = (prev + 1) % CINEMATIC_STOCKS.length;
+          setSelectedSymbol(CINEMATIC_STOCKS[next]);
+          return next;
+        });
+        setCinematicProgress(0);
+      }
+      
+      progressRafRef.current = requestAnimationFrame(tick);
+    };
+
+    progressRafRef.current = requestAnimationFrame(tick);
+
+    return () => {
+      cancelled = true;
+      cancelAnimationFrame(progressRafRef.current);
+    };
+  }, [cinematicActive]); // Only depend on active state — index managed internally
 
   const stock = stocks.find(s => s.symbol === selectedSymbol);
   const lastCandle = candleData.length > 0 ? candleData[candleData.length - 1] : null;
@@ -86,8 +141,21 @@ export default function ChartView() {
           )}
         </div>
 
-        {/* Timeframe + Compare buttons */}
+        {/* Timeframe + Compare + Cinematic buttons */}
         <div className="flex items-center gap-2">
+          <button
+            onClick={toggleCinematic}
+            aria-pressed={cinematicActive}
+            className={`cinematic-btn flex items-center gap-1 px-2.5 py-1 rounded-md text-xs font-medium transition-all border ${
+              cinematicActive
+                ? 'bg-amber-600/20 border-amber-500/50 text-amber-400 cinematic-btn-active'
+                : 'border-transparent text-[var(--text-secondary)] hover:text-white hover:bg-white/5'
+            }`}
+            title="Cinematic autoplay — cycle through stocks (A)"
+          >
+            {cinematicActive ? <Pause size={12} /> : <Play size={12} />}
+            <span className="hidden sm:inline">Autoplay</span>
+          </button>
           <button
             onClick={() => setComparisonMode(!comparisonMode)}
             aria-pressed={comparisonMode}
@@ -162,12 +230,38 @@ export default function ChartView() {
         </div>
       ) : (
         <>
-          <div className="flex-1 min-h-0">
+          <div className="flex-1 min-h-0 relative">
             {candleData.length > 0 ? (
               <CandlestickChart />
             ) : (
               <div className="flex items-center justify-center h-full text-[var(--text-secondary)] text-sm">
                 No data available for {selectedSymbol}
+              </div>
+            )}
+
+            {/* Cinematic floating badge */}
+            {cinematicActive && (
+              <div className="cinematic-badge absolute bottom-3 right-3 z-20 bg-[var(--bg-card)]/90 backdrop-blur-md border border-amber-500/30 rounded-lg px-3 py-2 shadow-lg">
+                <div className="flex items-center gap-2">
+                  <span className="cinematic-pulse-dot w-2 h-2 rounded-full bg-amber-400" />
+                  <span className="text-xs font-semibold text-amber-400">Autoplay</span>
+                  <span className="text-[10px] text-[var(--text-secondary)]">
+                    {cinematicIndex + 1}/{CINEMATIC_STOCKS.length}
+                  </span>
+                </div>
+                <div className="flex items-center gap-2 mt-1.5">
+                  <span className="text-sm font-bold text-white">{selectedSymbol}</span>
+                  <span className="text-[10px] text-[var(--text-secondary)]">
+                    {stocks.find(s => s.symbol === selectedSymbol)?.name}
+                  </span>
+                </div>
+                {/* Progress bar */}
+                <div className="mt-1.5 h-1 rounded-full bg-amber-900/30 overflow-hidden">
+                  <div
+                    className="h-full rounded-full bg-amber-400 transition-none"
+                    style={{ width: `${cinematicProgress * 100}%` }}
+                  />
+                </div>
               </div>
             )}
           </div>

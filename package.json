@@ -1,7 +1,7 @@
 {
   "name": "marketflow",
   "private": true,
-  "version": "0.1.0",
+  "version": "1.0.0",
   "type": "module",
   "description": "Interactive stock market visualizer with treemap heatmap, candlestick charts with technical indicators, and portfolio trading simulator",
   "homepage": "https://kai-claw.github.io/marketflow/",

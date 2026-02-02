@@ -372,7 +372,7 @@ function SummaryCard({ icon, label, value, sub, color }: {
   };
 
   return (
-    <div className={`bg-gradient-to-br ${colorMap[color]} border rounded-xl p-2.5 sm:p-3.5`} aria-label={`${label}: ${value}`}>
+    <div className={`summary-card bg-gradient-to-br ${colorMap[color]} border rounded-xl p-2.5 sm:p-3.5`} aria-label={`${label}: ${value}`}>
       <div className="flex items-center gap-2 mb-1.5">
         <span className={iconColorMap[color]} aria-hidden="true">{icon}</span>
         <span className="text-[10px] text-[var(--text-secondary)] font-medium">{label}</span>

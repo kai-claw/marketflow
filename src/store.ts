@@ -11,6 +11,15 @@ export type View = 'heatmap' | 'chart' | 'portfolio';
 export type ChartTimeframe = '1M' | '3M' | '6M' | '1Y';
 export type Indicator = 'sma20' | 'sma50' | 'ema12' | 'ema26' | 'bollinger' | 'rsi' | 'macd' | 'volume';
 
+export interface MarketMood {
+  label: string;
+  emoji: string;
+  color: string;
+  advancers: number;
+  decliners: number;
+  breadth: number; // advancers / total, 0-1
+}
+
 interface AppState {
   view: View;
   setView: (v: View) => void;
@@ -19,6 +28,7 @@ interface AppState {
   stocks: Stock[];
   sectors: Sector[];
   refreshMarket: () => void;
+  marketMood: MarketMood;
   
   // Chart
   selectedSymbol: string;
@@ -30,6 +40,10 @@ interface AppState {
   toggleIndicator: (i: Indicator) => void;
   comparisonMode: boolean;
   setComparisonMode: (on: boolean) => void;
+  
+  // Cinematic
+  cinematicActive: boolean;
+  setCinematicActive: (on: boolean) => void;
   
   // Portfolio
   portfolio: Portfolio;
@@ -52,8 +66,34 @@ function getCandleData(symbol: string, timeframe: ChartTimeframe): Candle[] {
   return allData.slice(-days);
 }
 
+function computeMarketMood(stocks: Stock[]): MarketMood {
+  const advancers = stocks.filter(s => s.change > 0).length;
+  const decliners = stocks.filter(s => s.change < 0).length;
+  const breadth = stocks.length > 0 ? advancers / stocks.length : 0.5;
+  
+  let label: string;
+  let emoji: string;
+  let color: string;
+  
+  if (breadth >= 0.7) { label = 'Strong Rally'; emoji = '🚀'; color = '#22c55e'; }
+  else if (breadth >= 0.55) { label = 'Bullish'; emoji = '📈'; color = '#4ade80'; }
+  else if (breadth >= 0.45) { label = 'Mixed'; emoji = '⚖️'; color = '#f59e0b'; }
+  else if (breadth >= 0.3) { label = 'Bearish'; emoji = '📉'; color = '#f87171'; }
+  else { label = 'Selloff'; emoji = '🔻'; color = '#ef4444'; }
+  
+  return { label, emoji, color, advancers, decliners, breadth };
+}
+
+// Curated cinematic tour stocks — diversified and interesting
+export const CINEMATIC_STOCKS = ['NVDA', 'TSLA', 'AAPL', 'LLY', 'NFLX', 'XOM', 'JPM', 'AMZN', 'META', 'GOOGL'];
+export const CINEMATIC_INTERVAL = 10000; // 10s per stock
+
 const initialStocks = generateMarketData();
 const initialSectors = groupBySector(initialStocks);
+const initialMood = computeMarketMood(initialStocks);
+
+// Auto-select biggest daily mover for first load wow
+const biggestMover = [...initialStocks].sort((a, b) => Math.abs(b.change) - Math.abs(a.change))[0]?.symbol || 'AAPL';
 
 export const useStore = create<AppState>((set, get) => ({
   view: 'heatmap',
@@ -61,14 +101,15 @@ export const useStore = create<AppState>((set, get) => ({
   
   stocks: initialStocks,
   sectors: initialSectors,
+  marketMood: initialMood,
   refreshMarket: () => {
     const stocks = generateMarketData(Date.now());
-    set({ stocks, sectors: groupBySector(stocks) });
+    set({ stocks, sectors: groupBySector(stocks), marketMood: computeMarketMood(stocks) });
   },
   
-  selectedSymbol: 'AAPL',
+  selectedSymbol: biggestMover,
   setSelectedSymbol: (s) => set({ selectedSymbol: s, candleData: getCandleData(s, get().chartTimeframe) }),
-  candleData: getCandleData('AAPL', '1Y'),
+  candleData: getCandleData(biggestMover, '1Y'),
   chartTimeframe: '1Y',
   setChartTimeframe: (t) => set({ chartTimeframe: t, candleData: getCandleData(get().selectedSymbol, t) }),
   activeIndicators: new Set<Indicator>(['volume']),
@@ -80,6 +121,9 @@ export const useStore = create<AppState>((set, get) => ({
   },
   comparisonMode: false,
   setComparisonMode: (on) => set({ comparisonMode: on }),
+  
+  cinematicActive: false,
+  setCinematicActive: (on) => set({ cinematicActive: on }),
   
   portfolio: createPortfolio(100000),
   buyStock: (symbol, shares, price) => {
