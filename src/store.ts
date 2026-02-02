@@ -1,12 +1,12 @@
+// Zustand store — thin state + actions layer, no business logic.
+// All computation lives in data/ modules.
+
 import { create } from 'zustand';
 import { generateMarketData, groupBySector } from './data/marketData';
-import { generateCandlestickData } from './data/candlestickData';
+import { getCandleData } from './data/candleHelpers';
+import { computeMarketMood } from './data/marketMood';
 import { createPortfolio, executeTrade } from './data/portfolioData';
-import {
-  STOCK_PRESETS,
-  TIMEFRAME_DAYS,
-  DEFAULT_STARTING_CASH,
-} from './constants';
+import { DEFAULT_STARTING_CASH } from './constants';
 import type {
   View,
   ChartTimeframe,
@@ -17,6 +17,8 @@ import type {
   Candle,
   Portfolio,
 } from './types';
+
+// ── State shape ──
 
 interface AppState {
   view: View;
@@ -50,30 +52,7 @@ interface AppState {
   resetPortfolio: () => void;
 }
 
-function getCandleData(symbol: string, timeframe: ChartTimeframe): Candle[] {
-  const preset = STOCK_PRESETS[symbol] || { price: 100, volatility: 0.02, trend: 0.0003 };
-  const allData = generateCandlestickData(symbol, preset.price * 0.7, 400, preset.volatility, preset.trend);
-  const days = TIMEFRAME_DAYS[timeframe];
-  return allData.slice(-days);
-}
-
-function computeMarketMood(stocks: Stock[]): MarketMood {
-  const advancers = stocks.filter(s => s.change > 0).length;
-  const decliners = stocks.filter(s => s.change < 0).length;
-  const breadth = stocks.length > 0 ? advancers / stocks.length : 0.5;
-
-  let label: string;
-  let emoji: string;
-  let color: string;
-
-  if (breadth >= 0.7) { label = 'Strong Rally'; emoji = '🚀'; color = '#22c55e'; }
-  else if (breadth >= 0.55) { label = 'Bullish'; emoji = '📈'; color = '#4ade80'; }
-  else if (breadth >= 0.45) { label = 'Mixed'; emoji = '⚖️'; color = '#f59e0b'; }
-  else if (breadth >= 0.3) { label = 'Bearish'; emoji = '📉'; color = '#f87171'; }
-  else { label = 'Selloff'; emoji = '🔻'; color = '#ef4444'; }
-
-  return { label, emoji, color, advancers, decliners, breadth };
-}
+// ── Initial state (computed once at module load) ──
 
 const initialStocks = generateMarketData();
 const initialSectors = groupBySector(initialStocks);
@@ -81,6 +60,8 @@ const initialMood = computeMarketMood(initialStocks);
 
 // Auto-select biggest daily mover for first load wow
 const biggestMover = [...initialStocks].sort((a, b) => Math.abs(b.change) - Math.abs(a.change))[0]?.symbol || 'AAPL';
+
+// ── Store ──
 
 export const useStore = create<AppState>((set, get) => ({
   view: 'heatmap',
@@ -125,7 +106,3 @@ export const useStore = create<AppState>((set, get) => ({
   },
   resetPortfolio: () => set({ portfolio: createPortfolio(DEFAULT_STARTING_CASH) }),
 }));
-
-// Re-export types and constants for backward compat
-export type { View, ChartTimeframe, Indicator, MarketMood } from './types';
-export { CINEMATIC_STOCKS, CINEMATIC_INTERVAL } from './constants';

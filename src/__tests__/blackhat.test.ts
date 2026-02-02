@@ -6,7 +6,6 @@ import {
   calculateRSI,
   calculateMACD,
   calculateBollingerBands,
-  STOCK_PRESETS,
 } from '../data/candlestickData';
 import {
   createPortfolio,
@@ -14,14 +13,10 @@ import {
   getPortfolioValue,
   getPortfolioReturn,
   getPositionPnL,
-  type Portfolio,
-  type Position,
 } from '../data/portfolioData';
-import {
-  generateMarketData,
-  groupBySector,
-  SECTOR_COLORS,
-} from '../data/marketData';
+import { generateMarketData, groupBySector } from '../data/marketData';
+import { STOCK_PRESETS, SECTOR_COLORS } from '../constants';
+import type { Portfolio, Position } from '../types';
 
 // ================ PORTFOLIO MUTATION BUG ================
 describe('Portfolio immutability (critical bug fix)', () => {

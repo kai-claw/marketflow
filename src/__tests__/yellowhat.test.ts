@@ -1,7 +1,7 @@
 import { describe, it, expect } from 'vitest';
-import { generateMarketData, groupBySector, SECTOR_COLORS, type Stock } from '../data/marketData';
-import { STOCK_PRESETS, generateCandlestickData } from '../data/candlestickData';
-import { CINEMATIC_STOCKS, CINEMATIC_INTERVAL } from '../store';
+import { generateMarketData, groupBySector, type Stock } from '../data/marketData';
+import { generateCandlestickData } from '../data/candlestickData';
+import { CINEMATIC_STOCKS, CINEMATIC_INTERVAL, STOCK_PRESETS, SECTOR_COLORS } from '../constants';
 
 // ===== Market Mood =====
 describe('Market Mood Computation', () => {

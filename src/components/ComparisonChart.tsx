@@ -1,25 +1,16 @@
 import { useEffect, useRef, useMemo, useState, useCallback } from 'react';
 import { createChart, type IChartApi, ColorType, LineSeries } from 'lightweight-charts';
 import { useStore } from '../store';
-import { generateCandlestickData } from '../data/candlestickData';
+import { getCandleData } from '../data/candleHelpers';
 import {
-  STOCK_PRESETS,
   COMPARISON_COLORS,
   MAX_COMPARISON_STOCKS,
-  TIMEFRAME_DAYS,
   POPULAR_SYMBOLS,
   CHART_THEME,
 } from '../constants';
-import type { ChartTimeframe, Candle } from '../types';
 import { normalizeToPercent } from '../utils';
 import { toLineData } from '../chartHelpers';
 import { X, Plus, GitCompareArrows } from 'lucide-react';
-
-function getCandlesForSymbol(symbol: string, timeframe: ChartTimeframe): Candle[] {
-  const preset = STOCK_PRESETS[symbol] || { price: 100, volatility: 0.02, trend: 0.0003 };
-  const allData = generateCandlestickData(symbol, preset.price * 0.7, 400, preset.volatility, preset.trend);
-  return allData.slice(-TIMEFRAME_DAYS[timeframe]);
-}
 
 interface Props {
   onClose: () => void;
@@ -82,7 +73,7 @@ export default function ComparisonChart({ onClose }: Props) {
 
     // Add zero line
     if (compareSymbols.length > 0) {
-      const firstCandles = getCandlesForSymbol(compareSymbols[0], chartTimeframe);
+      const firstCandles = getCandleData(compareSymbols[0], chartTimeframe);
       const zeroData = toLineData(firstCandles.map(c => ({ time: c.time, value: 0 })));
       const zeroSeries = chart.addSeries(LineSeries, {
         color: 'rgba(148, 163, 184, 0.2)',
@@ -95,7 +86,7 @@ export default function ComparisonChart({ onClose }: Props) {
 
     // Add each comparison stock
     compareSymbols.forEach((symbol, i) => {
-      const candles = getCandlesForSymbol(symbol, chartTimeframe);
+      const candles = getCandleData(symbol, chartTimeframe);
       const normalized = normalizeToPercent(candles);
       const color = COMPARISON_COLORS[i % COMPARISON_COLORS.length];
 

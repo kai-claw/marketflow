@@ -126,5 +126,4 @@ export function getPositionPnL(position: Position): PnL {
   };
 }
 
-// Re-export types for backward compat
-export type { Portfolio, Position, Trade, PnL } from '../types';
+// Types available via '../types' or 'data/index' barrel

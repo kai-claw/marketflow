@@ -5,8 +5,8 @@ import {
   getPortfolioValue,
   getPortfolioReturn,
   getPositionPnL,
-  type Portfolio,
 } from '../data/portfolioData';
+import type { Portfolio } from '../types';
 
 describe('createPortfolio', () => {
   it('creates with correct starting cash', () => {

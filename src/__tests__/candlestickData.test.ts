@@ -6,9 +6,9 @@ import {
   calculateRSI,
   calculateMACD,
   calculateBollingerBands,
-  STOCK_PRESETS,
-  type Candle,
 } from '../data/candlestickData';
+import { STOCK_PRESETS } from '../constants';
+import type { Candle } from '../types';
 
 describe('generateCandlestickData', () => {
   const data = generateCandlestickData('AAPL', 200, 365, 0.02, 0.0003);

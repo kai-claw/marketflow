@@ -3,7 +3,6 @@
 import type { Candle } from '../types';
 import { seededRandom } from '../utils';
 import {
-  STOCK_PRESETS,
   DEFAULT_CANDLE_DAYS,
   DEFAULT_VOLATILITY,
   DEFAULT_TREND,
@@ -67,10 +66,6 @@ export function generateCandlestickData(
 
   return candles;
 }
-
-// Re-export for backward compat
-export { STOCK_PRESETS };
-export type { Candle };
 
 // Re-export indicators for backward compat (existing tests/components import from here)
 export {

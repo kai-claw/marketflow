@@ -2,7 +2,6 @@
 
 import type { Stock, Sector } from '../types';
 import { seededRandom } from '../utils';
-import { SECTOR_COLORS } from '../constants';
 
 const today = new Date();
 const daySeed = today.getFullYear() * 10000 + (today.getMonth() + 1) * 100 + today.getDate();
@@ -124,6 +123,5 @@ export function groupBySector(stocks: Stock[]): Sector[] {
   })).sort((a, b) => b.totalMarketCap - a.totalMarketCap);
 }
 
-// Re-export for backward compat (used by tests and Heatmap)
-export { SECTOR_COLORS };
+// Types re-exported for backward compat (used by MarketTicker)
 export type { Stock, Sector };

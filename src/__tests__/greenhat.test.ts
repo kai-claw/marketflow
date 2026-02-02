@@ -1,6 +1,7 @@
 import { describe, it, expect } from 'vitest';
 import { generateMarketData, groupBySector } from '../data/marketData';
-import { generateCandlestickData, STOCK_PRESETS, calculateSMA, calculateEMA } from '../data/candlestickData';
+import { generateCandlestickData, calculateSMA, calculateEMA } from '../data/candlestickData';
+import { STOCK_PRESETS } from '../constants';
 
 // --- Market Ticker Tests ---
 describe('Market Ticker data requirements', () => {

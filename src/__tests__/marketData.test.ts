@@ -1,10 +1,7 @@
 import { describe, it, expect } from 'vitest';
-import {
-  generateMarketData,
-  groupBySector,
-  SECTOR_COLORS,
-  type Stock,
-} from '../data/marketData';
+import { generateMarketData, groupBySector } from '../data/marketData';
+import { SECTOR_COLORS } from '../constants';
+import type { Stock } from '../types';
 
 describe('generateMarketData', () => {
   const stocks = generateMarketData(12345);

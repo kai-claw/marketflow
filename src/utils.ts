@@ -1,5 +1,7 @@
 // Shared utility functions for MarketFlow
 
+import { CHANGE_COLOR_STOPS, CHANGE_COLOR_FLOOR } from './constants';
+
 /**
  * Linear congruential PRNG — deterministic from seed.
  * Returns a function that produces values in (0, 1).
@@ -14,18 +16,13 @@ export function seededRandom(seed: number): () => number {
 
 /**
  * Map a daily % change to a treemap cell color.
+ * Derives from CHANGE_COLOR_STOPS in constants.ts — single source of truth.
  */
 export function changeToColor(change: number): string {
-  if (change > 3) return '#15803d';
-  if (change > 2) return '#16a34a';
-  if (change > 1) return '#22c55e';
-  if (change > 0.5) return '#4ade80';
-  if (change > 0) return '#86efac';
-  if (change > -0.5) return '#fca5a5';
-  if (change > -1) return '#f87171';
-  if (change > -2) return '#ef4444';
-  if (change > -3) return '#dc2626';
-  return '#b91c1c';
+  for (const stop of CHANGE_COLOR_STOPS) {
+    if (change > stop.threshold) return stop.color;
+  }
+  return CHANGE_COLOR_FLOOR;
 }
 
 /**
