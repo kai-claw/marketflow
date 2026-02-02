@@ -45,6 +45,10 @@ export function toCandlestickData(candles: Candle[]): ChartCandle[] {
   }));
 }
 
+// Pre-allocated color strings for volume bars (avoids per-candle string creation)
+const VOL_COLOR_UP = 'rgba(34, 197, 94, 0.3)';
+const VOL_COLOR_DOWN = 'rgba(239, 68, 68, 0.3)';
+
 /**
  * Convert Candle[] to volume histogram data.
  */
@@ -52,7 +56,7 @@ export function toVolumeData(candles: Candle[]): ChartVolumeBar[] {
   return candles.map(c => ({
     time: c.time as Time,
     value: c.volume,
-    color: c.close >= c.open ? 'rgba(34, 197, 94, 0.3)' : 'rgba(239, 68, 68, 0.3)',
+    color: c.close >= c.open ? VOL_COLOR_UP : VOL_COLOR_DOWN,
   }));
 }
 

@@ -32,20 +32,30 @@ export default function MarketTicker() {
     return [...sorted, ...sorted];
   }, [stocks]);
 
+  // Pause rAF when tab is hidden (document.visibilitychange) to avoid wasted work
+  const visibleRef = useRef(true);
+  const offsetRef = useRef(0);
+
+  useEffect(() => {
+    const handler = () => { visibleRef.current = !document.hidden; };
+    document.addEventListener('visibilitychange', handler);
+    return () => document.removeEventListener('visibilitychange', handler);
+  }, []);
+
   useEffect(() => {
     const el = scrollRef.current;
     if (!el) return;
 
-    let offset = 0;
+    offsetRef.current = 0;
     const speed = 0.5; // pixels per frame
 
     const animate = () => {
-      if (!pausedRef.current) {
-        offset += speed;
+      if (!pausedRef.current && visibleRef.current) {
+        offsetRef.current += speed;
         // Reset when we've scrolled past the first copy
         const halfWidth = el.scrollWidth / 2;
-        if (offset >= halfWidth) offset = 0;
-        el.style.transform = `translateX(-${offset}px)`;
+        if (offsetRef.current >= halfWidth) offsetRef.current = 0;
+        el.style.transform = `translateX(-${offsetRef.current}px)`;
       }
       animRef.current = requestAnimationFrame(animate);
     };

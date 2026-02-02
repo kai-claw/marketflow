@@ -1,3 +1,4 @@
+import { useMemo } from 'react';
 import { TrendingUp, BarChart3, PieChart, Briefcase } from 'lucide-react';
 import { useStore } from '../store';
 import type { View } from '../types';
@@ -11,9 +12,16 @@ const NAV_ITEMS: { view: View; label: string; icon: React.ReactNode; key: string
 export default function Header() {
   const { view, setView, marketMood, stocks } = useStore();
 
-  // Top gainer & loser
-  const topGainer = [...stocks].sort((a, b) => b.change - a.change)[0];
-  const topLoser = [...stocks].sort((a, b) => a.change - b.change)[0];
+  // Top gainer & loser — single O(n) pass instead of two O(n log n) sorts
+  const { topGainer, topLoser } = useMemo(() => {
+    let gainer = stocks[0] || null;
+    let loser = stocks[0] || null;
+    for (let i = 1; i < stocks.length; i++) {
+      if (stocks[i].change > gainer.change) gainer = stocks[i];
+      if (stocks[i].change < loser.change) loser = stocks[i];
+    }
+    return { topGainer: gainer, topLoser: loser };
+  }, [stocks]);
 
   return (
     <header className="header-bar flex items-center justify-between px-3 sm:px-5 py-3 border-b border-[var(--border)] bg-[var(--bg-secondary)]">

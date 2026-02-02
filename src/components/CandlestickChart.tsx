@@ -154,17 +154,22 @@ export default function CandlestickChart() {
 
     chart.timeScale().fitContent();
 
+    let resizeTimer: ReturnType<typeof setTimeout>;
     const ro = new ResizeObserver(() => {
-      if (chartRef.current && container) {
-        chartRef.current.applyOptions({
-          width: container.clientWidth,
-          height: container.clientHeight,
-        });
-      }
+      clearTimeout(resizeTimer);
+      resizeTimer = setTimeout(() => {
+        if (chartRef.current && container) {
+          chartRef.current.applyOptions({
+            width: container.clientWidth,
+            height: container.clientHeight,
+          });
+        }
+      }, 100);
     });
     ro.observe(container);
 
     return () => {
+      clearTimeout(resizeTimer);
       ro.disconnect();
       if (chartRef.current) {
         chartRef.current.remove();

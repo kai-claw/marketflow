@@ -7,7 +7,7 @@ export { generateMarketData, groupBySector } from './marketData';
 export { generateCandlestickData } from './candlestickData';
 
 // Candle helpers (shared between store and components)
-export { getCandleData, DEFAULT_PRESET, GENERATION_DAYS } from './candleHelpers';
+export { getCandleData, clearCandleCache, DEFAULT_PRESET, GENERATION_DAYS } from './candleHelpers';
 
 // Technical indicators
 export {

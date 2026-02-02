@@ -5,11 +5,13 @@ import Heatmap from './components/Heatmap';
 import ChartView from './components/ChartView';
 import PortfolioView from './components/PortfolioView';
 import ErrorBoundary from './components/ErrorBoundary';
+import { usePerformanceMonitor, FPSBadge } from './components/PerformanceMonitor';
 import { useStore } from './store';
 
 export default function App() {
   const { view, setView, comparisonMode, setComparisonMode, cinematicActive, setCinematicActive } = useStore();
   const [showHelp, setShowHelp] = useState(false);
+  const perf = usePerformanceMonitor();
 
   const handleKeyDown = useCallback((e: KeyboardEvent) => {
     // Don't capture when typing in inputs/selects
@@ -55,7 +57,7 @@ export default function App() {
         <Header />
         <MarketTicker />
         <main className="flex-1 min-h-0 relative" role="main" aria-label={`${view === 'heatmap' ? 'Market Map' : view === 'chart' ? 'Charts' : 'Portfolio'} view`}>
-          {view === 'heatmap' && <Heatmap />}
+          {view === 'heatmap' && <Heatmap perfDegraded={perf.degraded} />}
           {view === 'chart' && <ChartView />}
           {view === 'portfolio' && <PortfolioView />}
 
@@ -102,6 +104,8 @@ export default function App() {
             </div>
           </div>
         )}
+        {/* Performance monitor badge */}
+        {perf.degraded && <FPSBadge {...perf} />}
       </div>
     </ErrorBoundary>
   );

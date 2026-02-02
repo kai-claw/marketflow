@@ -3,7 +3,7 @@
 
 import { create } from 'zustand';
 import { generateMarketData, groupBySector } from './data/marketData';
-import { getCandleData } from './data/candleHelpers';
+import { getCandleData, clearCandleCache } from './data/candleHelpers';
 import { computeMarketMood } from './data/marketMood';
 import { createPortfolio, executeTrade } from './data/portfolioData';
 import { DEFAULT_STARTING_CASH } from './constants';
@@ -71,6 +71,7 @@ export const useStore = create<AppState>((set, get) => ({
   sectors: initialSectors,
   marketMood: initialMood,
   refreshMarket: () => {
+    clearCandleCache();
     const stocks = generateMarketData(Date.now());
     set({ stocks, sectors: groupBySector(stocks), marketMood: computeMarketMood(stocks) });
   },

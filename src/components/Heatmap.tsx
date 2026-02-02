@@ -23,12 +23,19 @@ interface TreemapLeafData {
 
 type TreemapNode = d3.HierarchyRectangularNode<TreemapLeafData>;
 
-export default function Heatmap() {
+interface HeatmapProps {
+  perfDegraded?: boolean;
+}
+
+export default function Heatmap({ perfDegraded = false }: HeatmapProps) {
   const svgRef = useRef<SVGSVGElement>(null);
   const containerRef = useRef<HTMLDivElement>(null);
   const { sectors, stocks, refreshMarket, setView, setSelectedSymbol } = useStore();
   const [tooltip, setTooltip] = useState<TooltipData | null>(null);
   const [sparklinesEnabled, setSparklinesEnabled] = useState(true);
+
+  // Auto-disable sparklines when performance is degraded
+  const effectiveSparklinesEnabled = sparklinesEnabled && !perfDegraded;
 
   // Pre-compute sparklines for all stocks (memoized — only recomputes on market refresh)
   const sparklineMap = useMemo(
@@ -68,7 +75,7 @@ export default function Heatmap() {
     svg.attr('width', width).attr('height', height);
 
     // Define sparkline gradients
-    if (sparklinesEnabled) {
+    if (effectiveSparklinesEnabled) {
       const defs = svg.append('defs');
       defs.append('linearGradient')
         .attr('id', 'sparkline-fill-up')
@@ -152,10 +159,15 @@ export default function Heatmap() {
         return d.data.name;
       });
 
-    // Compute volume range for pulse intensity
-    const allVolumes = leafNodes.map(d => d.data.stock?.volume || 0);
-    const maxVol = Math.max(...allVolumes, 1);
-    const minVol = Math.min(...allVolumes);
+    // Compute volume range for pulse intensity — manual loop (no spread stack overflow risk)
+    let maxVol = 1;
+    let minVol = Infinity;
+    for (let i = 0; i < leafNodes.length; i++) {
+      const v = leafNodes[i].data.stock?.volume || 0;
+      if (v > maxVol) maxVol = v;
+      if (v < minVol) minVol = v;
+    }
+    if (minVol === Infinity) minVol = 0;
     const volRange = maxVol - minVol || 1;
 
     // Stock cells
@@ -264,7 +276,7 @@ export default function Heatmap() {
       });
 
     // Sparkline overlays — only in cells large enough
-    if (sparklinesEnabled) {
+    if (effectiveSparklinesEnabled) {
       leaves.each(function (d) {
         const cellW = d.x1 - d.x0;
         const cellH = d.y1 - d.y0;
@@ -319,21 +331,26 @@ export default function Heatmap() {
           .attr('aria-hidden', 'true');
       });
     }
-  }, [sectors, handleStockClick, sparklinesEnabled, sparklineMap]);
+  }, [sectors, handleStockClick, effectiveSparklinesEnabled, sparklineMap]);
 
-  // Render + resize
+  // Render + resize (debounced to prevent layout thrash during drag resize)
   useEffect(() => {
     renderTreemap();
 
     const container = containerRef.current;
     if (!container) return;
 
+    let resizeTimer: ReturnType<typeof setTimeout>;
     const ro = new ResizeObserver(() => {
-      renderTreemap();
+      clearTimeout(resizeTimer);
+      resizeTimer = setTimeout(renderTreemap, 100);
     });
     ro.observe(container);
 
-    return () => ro.disconnect();
+    return () => {
+      clearTimeout(resizeTimer);
+      ro.disconnect();
+    };
   }, [renderTreemap]);
 
   // Compute tooltip position with viewport clamping

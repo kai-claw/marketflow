@@ -191,9 +191,13 @@ export default function AllocationDonut() {
     renderDonut();
     const container = containerRef.current;
     if (!container) return;
-    const ro = new ResizeObserver(() => renderDonut());
+    let resizeTimer: ReturnType<typeof setTimeout>;
+    const ro = new ResizeObserver(() => {
+      clearTimeout(resizeTimer);
+      resizeTimer = setTimeout(renderDonut, 100);
+    });
     ro.observe(container);
-    return () => ro.disconnect();
+    return () => { clearTimeout(resizeTimer); ro.disconnect(); };
   }, [renderDonut]);
 
   if (portfolio.positions.length === 0) return null;

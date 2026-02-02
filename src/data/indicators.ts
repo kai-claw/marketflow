@@ -115,10 +115,24 @@ export function calculateBollingerBands(
   const middle: TimeSeriesPoint[] = [];
   const lower: TimeSeriesPoint[] = [];
 
+  // Rolling sum and sum-of-squares — O(n) instead of O(n*period)
+  let sum = 0;
+  let sumSq = 0;
+  for (let i = 0; i < period; i++) {
+    sum += data[i].close;
+    sumSq += data[i].close * data[i].close;
+  }
+
   for (let i = period - 1; i < data.length; i++) {
-    const slice = data.slice(i - period + 1, i + 1);
-    const mean = slice.reduce((s, c) => s + c.close, 0) / period;
-    const variance = slice.reduce((s, c) => s + Math.pow(c.close - mean, 2), 0) / period;
+    if (i > period - 1) {
+      const added = data[i].close;
+      const removed = data[i - period].close;
+      sum += added - removed;
+      sumSq += added * added - removed * removed;
+    }
+    const mean = sum / period;
+    // variance = E[x²] - (E[x])²
+    const variance = Math.max(0, sumSq / period - mean * mean);
     const sd = Math.sqrt(variance);
 
     middle.push({ time: data[i].time, value: Number(mean.toFixed(2)) });
