@@ -1,0 +1,17 @@
+{
+  "name": "MarketFlow — Stock Market Visualizer",
+  "short_name": "MarketFlow",
+  "description": "Interactive stock market visualizer with treemap heatmap, candlestick charts with technical indicators, and portfolio trading simulator.",
+  "start_url": "/marketflow/",
+  "display": "standalone",
+  "background_color": "#0a0e17",
+  "theme_color": "#22c55e",
+  "categories": ["finance", "education", "visualization"],
+  "icons": [
+    {
+      "src": "favicon.svg",
+      "sizes": "any",
+      "type": "image/svg+xml"
+    }
+  ]
+}

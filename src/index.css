@@ -595,6 +595,16 @@ input[type="number"]:focus {
   color: #ef4444 !important;
 }
 
+/* ===== Version badge ===== */
+.version-badge {
+  transition: all 0.2s ease;
+}
+.version-badge:hover {
+  opacity: 0.8 !important;
+  color: var(--green);
+  border-color: rgba(34, 197, 94, 0.3);
+}
+
 /* ===== Reduced motion ===== */
 @media (prefers-reduced-motion: reduce) {
   *, *::before, *::after {

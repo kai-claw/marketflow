@@ -90,7 +90,10 @@ export default function Header() {
           <div className="text-xs text-[var(--text-secondary)]">
             {new Date().toLocaleDateString('en-US', { weekday: 'short', month: 'short', day: 'numeric' })}
           </div>
-          <div className="text-[10px] text-[var(--text-secondary)] opacity-60">Simulated Data</div>
+          <div className="flex items-center justify-end gap-1.5 mt-0.5">
+            <span className="text-[10px] text-[var(--text-secondary)] opacity-60">Simulated Data</span>
+            <span className="version-badge text-[9px] font-mono text-[var(--text-secondary)] opacity-50 px-1.5 py-0.5 rounded border border-[var(--border)]/50">v1.0.0</span>
+          </div>
         </div>
       </div>
     </header>
