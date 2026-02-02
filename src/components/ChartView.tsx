@@ -3,6 +3,8 @@ import { STOCK_PRESETS } from '../data/candlestickData';
 import CandlestickChart from './CandlestickChart';
 import RSIChart from './RSIChart';
 import MACDChart from './MACDChart';
+import ComparisonChart from './ComparisonChart';
+import { GitCompareArrows } from 'lucide-react';
 
 const TIMEFRAMES: ChartTimeframe[] = ['1M', '3M', '6M', '1Y'];
 
@@ -29,6 +31,8 @@ export default function ChartView() {
     toggleIndicator,
     candleData,
     stocks,
+    comparisonMode,
+    setComparisonMode,
   } = useStore();
 
   const stock = stocks.find(s => s.symbol === selectedSymbol);
@@ -82,23 +86,38 @@ export default function ChartView() {
           )}
         </div>
 
-        {/* Timeframe buttons */}
-        <div className="flex gap-1 bg-[var(--bg-primary)] rounded-lg p-0.5" role="radiogroup" aria-label="Chart timeframe">
-          {TIMEFRAMES.map(tf => (
-            <button
-              key={tf}
-              role="radio"
-              aria-checked={chartTimeframe === tf}
-              onClick={() => setChartTimeframe(tf)}
-              className={`px-2.5 py-1 rounded-md text-xs font-medium transition-all ${
-                chartTimeframe === tf
-                  ? 'bg-[var(--bg-card)] text-white'
-                  : 'text-[var(--text-secondary)] hover:text-white'
-              }`}
-            >
-              {tf}
-            </button>
-          ))}
+        {/* Timeframe + Compare buttons */}
+        <div className="flex items-center gap-2">
+          <button
+            onClick={() => setComparisonMode(!comparisonMode)}
+            aria-pressed={comparisonMode}
+            className={`flex items-center gap-1 px-2.5 py-1 rounded-md text-xs font-medium transition-all border ${
+              comparisonMode
+                ? 'bg-blue-600/20 border-blue-500/50 text-blue-400'
+                : 'border-transparent text-[var(--text-secondary)] hover:text-white hover:bg-white/5'
+            }`}
+            title="Compare stocks (normalized % change)"
+          >
+            <GitCompareArrows size={12} />
+            <span className="hidden sm:inline">Compare</span>
+          </button>
+          <div className="flex gap-1 bg-[var(--bg-primary)] rounded-lg p-0.5" role="radiogroup" aria-label="Chart timeframe">
+            {TIMEFRAMES.map(tf => (
+              <button
+                key={tf}
+                role="radio"
+                aria-checked={chartTimeframe === tf}
+                onClick={() => setChartTimeframe(tf)}
+                className={`px-2.5 py-1 rounded-md text-xs font-medium transition-all ${
+                  chartTimeframe === tf
+                    ? 'bg-[var(--bg-card)] text-white'
+                    : 'text-[var(--text-secondary)] hover:text-white'
+                }`}
+              >
+                {tf}
+              </button>
+            ))}
+          </div>
         </div>
       </div>
 
@@ -137,28 +156,36 @@ export default function ChartView() {
       )}
 
       {/* Chart area */}
-      <div className="flex-1 min-h-0">
-        {candleData.length > 0 ? (
-          <CandlestickChart />
-        ) : (
-          <div className="flex items-center justify-center h-full text-[var(--text-secondary)] text-sm">
-            No data available for {selectedSymbol}
+      {comparisonMode ? (
+        <div className="flex-1 min-h-0 relative">
+          <ComparisonChart onClose={() => setComparisonMode(false)} />
+        </div>
+      ) : (
+        <>
+          <div className="flex-1 min-h-0">
+            {candleData.length > 0 ? (
+              <CandlestickChart />
+            ) : (
+              <div className="flex items-center justify-center h-full text-[var(--text-secondary)] text-sm">
+                No data available for {selectedSymbol}
+              </div>
+            )}
           </div>
-        )}
-      </div>
 
-      {/* RSI sub-chart */}
-      {activeIndicators.has('rsi') && candleData.length > 15 && (
-        <div className="border-t border-[var(--border)]">
-          <RSIChart />
-        </div>
-      )}
+          {/* RSI sub-chart */}
+          {activeIndicators.has('rsi') && candleData.length > 15 && (
+            <div className="border-t border-[var(--border)]">
+              <RSIChart />
+            </div>
+          )}
 
-      {/* MACD sub-chart */}
-      {activeIndicators.has('macd') && candleData.length > 26 && (
-        <div className="border-t border-[var(--border)]">
-          <MACDChart />
-        </div>
+          {/* MACD sub-chart */}
+          {activeIndicators.has('macd') && candleData.length > 26 && (
+            <div className="border-t border-[var(--border)]">
+              <MACDChart />
+            </div>
+          )}
+        </>
       )}
     </div>
   );

@@ -43,6 +43,37 @@ body {
 .glow-green { box-shadow: 0 0 20px rgba(34, 197, 94, 0.15); }
 .glow-red { box-shadow: 0 0 20px rgba(239, 68, 68, 0.15); }
 
+/* Heatmap breathing pulse — high-volume cells pulse more */
+@keyframes heatmapPulse {
+  0%, 100% { opacity: 1; }
+  50% { opacity: var(--pulse-min, 0.88); }
+}
+
+/* Market ticker */
+.ticker-container {
+  height: 28px;
+}
+.ticker-item {
+  transition: background-color 0.15s;
+}
+
+/* Comparison chip */
+.comparison-chip {
+  transition: all 0.15s;
+}
+.comparison-chip:hover {
+  filter: brightness(1.2);
+}
+
+/* Comparison dropdown */
+.comparison-dropdown {
+  animation: dropdownSlide 0.15s ease-out;
+}
+@keyframes dropdownSlide {
+  from { opacity: 0; transform: translateY(-4px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
 /* Focus-visible outlines */
 *:focus-visible {
   outline: 2px solid #3b82f6;

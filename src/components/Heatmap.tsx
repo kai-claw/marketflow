@@ -112,6 +112,12 @@ export default function Heatmap() {
         return d.data.name;
       });
 
+    // Compute volume range for pulse intensity
+    const allVolumes = leafNodes.map(d => d.data.stock?.volume || 0);
+    const maxVol = Math.max(...allVolumes, 1);
+    const minVol = Math.min(...allVolumes);
+    const volRange = maxVol - minVol || 1;
+
     // Stock cells
     const leaves = svg.selectAll('.cell')
       .data(leafNodes)
@@ -133,6 +139,17 @@ export default function Heatmap() {
       .attr('fill', d => changeToColor(d.data.stock?.change || 0))
       .attr('rx', 2)
       .style('cursor', 'pointer')
+      .each(function(d) {
+        // Add breathing pulse animation keyed to volume
+        const vol = d.data.stock?.volume || 0;
+        const intensity = (vol - minVol) / volRange; // 0-1
+        const duration = 2 + (1 - intensity) * 3; // 2-5s (higher vol = faster pulse)
+        const opacMin = 0.85 + (1 - intensity) * 0.15; // 0.85-1.0 range
+        const delay = Math.random() * duration; // random phase offset
+        d3.select(this)
+          .style('animation', `heatmapPulse ${duration}s ease-in-out ${delay}s infinite`)
+          .style('--pulse-min', String(opacMin));
+      })
       .on('click', (_, d) => {
         if (d.data.stock) handleStockClick(d.data.stock.symbol);
       })

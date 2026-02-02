@@ -1,5 +1,6 @@
 import { useEffect, useCallback } from 'react';
 import Header from './components/Header';
+import MarketTicker from './components/MarketTicker';
 import Heatmap from './components/Heatmap';
 import ChartView from './components/ChartView';
 import PortfolioView from './components/PortfolioView';
@@ -7,7 +8,7 @@ import ErrorBoundary from './components/ErrorBoundary';
 import { useStore } from './store';
 
 export default function App() {
-  const { view, setView } = useStore();
+  const { view, setView, comparisonMode, setComparisonMode } = useStore();
 
   const handleKeyDown = useCallback((e: KeyboardEvent) => {
     // Don't capture when typing in inputs/selects
@@ -24,8 +25,12 @@ export default function App() {
       case '3':
         setView('portfolio');
         break;
+      case 'c':
+      case 'C':
+        if (view === 'chart') setComparisonMode(!comparisonMode);
+        break;
     }
-  }, [setView]);
+  }, [setView, view, comparisonMode, setComparisonMode]);
 
   useEffect(() => {
     window.addEventListener('keydown', handleKeyDown);
@@ -36,6 +41,7 @@ export default function App() {
     <ErrorBoundary>
       <div className="h-screen w-screen flex flex-col bg-[var(--bg-primary)] text-[var(--text-primary)] overflow-hidden">
         <Header />
+        <MarketTicker />
         <main className="flex-1 min-h-0" role="main" aria-label={`${view === 'heatmap' ? 'Market Map' : view === 'chart' ? 'Charts' : 'Portfolio'} view`}>
           {view === 'heatmap' && <Heatmap />}
           {view === 'chart' && <ChartView />}

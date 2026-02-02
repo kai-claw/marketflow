@@ -28,6 +28,8 @@ interface AppState {
   setChartTimeframe: (t: ChartTimeframe) => void;
   activeIndicators: Set<Indicator>;
   toggleIndicator: (i: Indicator) => void;
+  comparisonMode: boolean;
+  setComparisonMode: (on: boolean) => void;
   
   // Portfolio
   portfolio: Portfolio;
@@ -76,6 +78,8 @@ export const useStore = create<AppState>((set, get) => ({
     else current.add(i);
     set({ activeIndicators: current });
   },
+  comparisonMode: false,
+  setComparisonMode: (on) => set({ comparisonMode: on }),
   
   portfolio: createPortfolio(100000),
   buyStock: (symbol, shares, price) => {
