@@ -1,5 +1,6 @@
 import { TrendingUp, BarChart3, PieChart, Briefcase } from 'lucide-react';
-import { useStore, type View } from '../store';
+import { useStore } from '../store';
+import type { View } from '../types';
 
 const NAV_ITEMS: { view: View; label: string; icon: React.ReactNode; key: string }[] = [
   { view: 'heatmap', label: 'Market Map', icon: <PieChart size={16} />, key: '1' },

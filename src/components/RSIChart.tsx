@@ -1,7 +1,9 @@
 import { useEffect, useRef } from 'react';
 import { createChart, type IChartApi, ColorType, LineStyle, LineSeries } from 'lightweight-charts';
 import { useStore } from '../store';
-import { calculateRSI } from '../data/candlestickData';
+import { calculateRSI } from '../data/indicators';
+import { CHART_THEME } from '../constants';
+import { toLineData, toConstantLine } from '../chartHelpers';
 
 export default function RSIChart() {
   const containerRef = useRef<HTMLDivElement>(null);
@@ -21,23 +23,23 @@ export default function RSIChart() {
       width: container.clientWidth,
       height: container.clientHeight,
       layout: {
-        background: { type: ColorType.Solid, color: '#0a0e17' },
-        textColor: '#94a3b8',
+        background: { type: ColorType.Solid, color: CHART_THEME.background },
+        textColor: CHART_THEME.textColor,
         fontSize: 10,
       },
       grid: {
-        vertLines: { color: '#1e2a3a' },
-        horzLines: { color: '#1e2a3a' },
+        vertLines: { color: CHART_THEME.gridColor },
+        horzLines: { color: CHART_THEME.gridColor },
       },
       crosshair: {
-        vertLine: { color: '#475569', labelBackgroundColor: '#334155' },
-        horzLine: { color: '#475569', labelBackgroundColor: '#334155' },
+        vertLine: { color: CHART_THEME.crosshairColor, labelBackgroundColor: CHART_THEME.crosshairLabelBg },
+        horzLine: { color: CHART_THEME.crosshairColor, labelBackgroundColor: CHART_THEME.crosshairLabelBg },
       },
       rightPriceScale: {
-        borderColor: '#1e2a3a',
+        borderColor: CHART_THEME.borderColor,
         scaleMargins: { top: 0.1, bottom: 0.1 },
       },
-      timeScale: { borderColor: '#1e2a3a', visible: false },
+      timeScale: { borderColor: CHART_THEME.borderColor, visible: false },
     });
 
     chartRef.current = chart;
@@ -50,7 +52,7 @@ export default function RSIChart() {
       priceLineVisible: false,
       lastValueVisible: true,
     });
-    rsiSeries.setData(rsiData as any);
+    rsiSeries.setData(toLineData(rsiData));
 
     // Overbought line (70)
     const ob = chart.addSeries(LineSeries, {
@@ -60,7 +62,7 @@ export default function RSIChart() {
       priceLineVisible: false,
       lastValueVisible: false,
     });
-    ob.setData(rsiData.map((d) => ({ time: d.time as any, value: 70 })));
+    ob.setData(toConstantLine(rsiData, 70));
 
     // Oversold line (30)
     const os = chart.addSeries(LineSeries, {
@@ -70,7 +72,7 @@ export default function RSIChart() {
       priceLineVisible: false,
       lastValueVisible: false,
     });
-    os.setData(rsiData.map((d) => ({ time: d.time as any, value: 30 })));
+    os.setData(toConstantLine(rsiData, 30));
 
     chart.timeScale().fitContent();
 

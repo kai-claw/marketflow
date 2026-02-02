@@ -9,11 +9,9 @@ import {
   HistogramSeries,
 } from 'lightweight-charts';
 import { useStore } from '../store';
-import {
-  calculateSMA,
-  calculateEMA,
-  calculateBollingerBands,
-} from '../data/candlestickData';
+import { calculateSMA, calculateEMA, calculateBollingerBands } from '../data/indicators';
+import { CHART_THEME } from '../constants';
+import { toCandlestickData, toVolumeData, toLineData } from '../chartHelpers';
 
 export default function CandlestickChart() {
   const chartContainerRef = useRef<HTMLDivElement>(null);
@@ -34,34 +32,34 @@ export default function CandlestickChart() {
       width: container.clientWidth,
       height: container.clientHeight,
       layout: {
-        background: { type: ColorType.Solid, color: '#0a0e17' },
-        textColor: '#94a3b8',
-        fontSize: 11,
+        background: { type: ColorType.Solid, color: CHART_THEME.background },
+        textColor: CHART_THEME.textColor,
+        fontSize: CHART_THEME.fontSize,
       },
       grid: {
-        vertLines: { color: '#1e2a3a' },
-        horzLines: { color: '#1e2a3a' },
+        vertLines: { color: CHART_THEME.gridColor },
+        horzLines: { color: CHART_THEME.gridColor },
       },
       crosshair: {
-        vertLine: { color: '#475569', labelBackgroundColor: '#334155' },
-        horzLine: { color: '#475569', labelBackgroundColor: '#334155' },
+        vertLine: { color: CHART_THEME.crosshairColor, labelBackgroundColor: CHART_THEME.crosshairLabelBg },
+        horzLine: { color: CHART_THEME.crosshairColor, labelBackgroundColor: CHART_THEME.crosshairLabelBg },
       },
-      rightPriceScale: { borderColor: '#1e2a3a' },
-      timeScale: { borderColor: '#1e2a3a', timeVisible: false },
+      rightPriceScale: { borderColor: CHART_THEME.borderColor },
+      timeScale: { borderColor: CHART_THEME.borderColor, timeVisible: false },
     });
 
     chartRef.current = chart;
 
     // Candlestick series
     const candleSeries = chart.addSeries(CandlestickSeries, {
-      upColor: '#22c55e',
-      downColor: '#ef4444',
-      borderUpColor: '#22c55e',
-      borderDownColor: '#ef4444',
-      wickUpColor: '#22c55e',
-      wickDownColor: '#ef4444',
+      upColor: CHART_THEME.upColor,
+      downColor: CHART_THEME.downColor,
+      borderUpColor: CHART_THEME.upColor,
+      borderDownColor: CHART_THEME.downColor,
+      wickUpColor: CHART_THEME.upColor,
+      wickDownColor: CHART_THEME.downColor,
     });
-    candleSeries.setData(candleData as any);
+    candleSeries.setData(toCandlestickData(candleData));
 
     // Volume
     if (activeIndicators.has('volume')) {
@@ -72,13 +70,7 @@ export default function CandlestickChart() {
       chart.priceScale('volume').applyOptions({
         scaleMargins: { top: 0.8, bottom: 0 },
       });
-      volumeSeries.setData(
-        candleData.map((c) => ({
-          time: c.time as any,
-          value: c.volume,
-          color: c.close >= c.open ? 'rgba(34, 197, 94, 0.3)' : 'rgba(239, 68, 68, 0.3)',
-        }))
-      );
+      volumeSeries.setData(toVolumeData(candleData));
     }
 
     // SMA 20
@@ -90,7 +82,7 @@ export default function CandlestickChart() {
         priceLineVisible: false,
         lastValueVisible: false,
       });
-      s.setData(sma20 as any);
+      s.setData(toLineData(sma20));
     }
 
     // SMA 50
@@ -102,7 +94,7 @@ export default function CandlestickChart() {
         priceLineVisible: false,
         lastValueVisible: false,
       });
-      s.setData(sma50 as any);
+      s.setData(toLineData(sma50));
     }
 
     // EMA 12
@@ -114,7 +106,7 @@ export default function CandlestickChart() {
         priceLineVisible: false,
         lastValueVisible: false,
       });
-      s.setData(ema12 as any);
+      s.setData(toLineData(ema12));
     }
 
     // EMA 26
@@ -126,7 +118,7 @@ export default function CandlestickChart() {
         priceLineVisible: false,
         lastValueVisible: false,
       });
-      s.setData(ema26 as any);
+      s.setData(toLineData(ema26));
     }
 
     // Bollinger Bands
@@ -140,7 +132,7 @@ export default function CandlestickChart() {
         priceLineVisible: false,
         lastValueVisible: false,
       });
-      upperS.setData(bb.upper as any);
+      upperS.setData(toLineData(bb.upper));
 
       const middleS = chart.addSeries(LineSeries, {
         color: 'rgba(99, 102, 241, 0.8)',
@@ -148,7 +140,7 @@ export default function CandlestickChart() {
         priceLineVisible: false,
         lastValueVisible: false,
       });
-      middleS.setData(bb.middle as any);
+      middleS.setData(toLineData(bb.middle));
 
       const lowerS = chart.addSeries(LineSeries, {
         color: 'rgba(99, 102, 241, 0.5)',
@@ -157,7 +149,7 @@ export default function CandlestickChart() {
         priceLineVisible: false,
         lastValueVisible: false,
       });
-      lowerS.setData(bb.lower as any);
+      lowerS.setData(toLineData(bb.lower));
     }
 
     chart.timeScale().fitContent();

@@ -1,10 +1,6 @@
 import { useState, useMemo } from 'react';
 import { useStore } from '../store';
-import {
-  getPortfolioValue,
-  getPortfolioReturn,
-  getPositionPnL,
-} from '../data/portfolioData';
+import { getPortfolioValue, getPortfolioReturn, getPositionPnL } from '../data/portfolioData';
 import {
   DollarSign,
   TrendingUp,

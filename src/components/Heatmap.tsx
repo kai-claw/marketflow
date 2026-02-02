@@ -1,21 +1,10 @@
 import { useEffect, useRef, useCallback, useState } from 'react';
 import * as d3 from 'd3';
 import { useStore } from '../store';
-import { SECTOR_COLORS, type Stock } from '../data/marketData';
+import { SECTOR_COLORS } from '../constants';
+import type { Stock } from '../types';
+import { changeToColor } from '../utils';
 import { RefreshCw, Info } from 'lucide-react';
-
-function changeToColor(change: number): string {
-  if (change > 3) return '#15803d';
-  if (change > 2) return '#16a34a';
-  if (change > 1) return '#22c55e';
-  if (change > 0.5) return '#4ade80';
-  if (change > 0) return '#86efac';
-  if (change > -0.5) return '#fca5a5';
-  if (change > -1) return '#f87171';
-  if (change > -2) return '#ef4444';
-  if (change > -3) return '#dc2626';
-  return '#b91c1c';
-}
 
 interface TooltipData {
   stock: Stock;

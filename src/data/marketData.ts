@@ -1,30 +1,8 @@
 // Realistic S&P 500 sector and stock data for the treemap
 
-export interface Stock {
-  symbol: string;
-  name: string;
-  sector: string;
-  marketCap: number; // billions
-  price: number;
-  change: number; // percent
-  volume: number;
-}
-
-export interface Sector {
-  name: string;
-  stocks: Stock[];
-  totalMarketCap: number;
-  avgChange: number;
-}
-
-// Seeded random for reproducible "daily" data
-function seededRandom(seed: number) {
-  let s = seed;
-  return () => {
-    s = (s * 16807 + 0) % 2147483647;
-    return (s - 1) / 2147483646;
-  };
-}
+import type { Stock, Sector } from '../types';
+import { seededRandom } from '../utils';
+import { SECTOR_COLORS } from '../constants';
 
 const today = new Date();
 const daySeed = today.getFullYear() * 10000 + (today.getMonth() + 1) * 100 + today.getDate();
@@ -112,50 +90,40 @@ const STOCK_DATA: Omit<Stock, 'change' | 'volume'>[] = [
 
 export function generateMarketData(customSeed?: number): Stock[] {
   const rand = seededRandom(customSeed ?? daySeed);
-  
+
   return STOCK_DATA.map(stock => {
     // Generate realistic daily change (-5% to +5%, biased toward smaller moves)
     const u1 = rand();
     const u2 = rand();
     const normal = Math.sqrt(-2 * Math.log(u1)) * Math.cos(2 * Math.PI * u2);
     const change = Number((normal * 1.8).toFixed(2));
-    
+
     // Volume based on market cap (bigger = more volume)
     const baseVolume = stock.marketCap * 100000;
     const volumeVariance = 0.5 + rand() * 1.5;
     const volume = Math.round(baseVolume * volumeVariance);
-    
+
     return { ...stock, change, volume };
   });
 }
 
 export function groupBySector(stocks: Stock[]): Sector[] {
   const sectorMap = new Map<string, Stock[]>();
-  
+
   for (const stock of stocks) {
     const arr = sectorMap.get(stock.sector) || [];
     arr.push(stock);
     sectorMap.set(stock.sector, arr);
   }
-  
-  return Array.from(sectorMap.entries()).map(([name, stocks]) => ({
+
+  return Array.from(sectorMap.entries()).map(([name, sectorStocks]) => ({
     name,
-    stocks: stocks.sort((a, b) => b.marketCap - a.marketCap),
-    totalMarketCap: stocks.reduce((s, st) => s + st.marketCap, 0),
-    avgChange: Number((stocks.reduce((s, st) => s + st.change, 0) / stocks.length).toFixed(2)),
+    stocks: sectorStocks.sort((a, b) => b.marketCap - a.marketCap),
+    totalMarketCap: sectorStocks.reduce((s, st) => s + st.marketCap, 0),
+    avgChange: Number((sectorStocks.reduce((s, st) => s + st.change, 0) / sectorStocks.length).toFixed(2)),
   })).sort((a, b) => b.totalMarketCap - a.totalMarketCap);
 }
 
-export const SECTOR_COLORS: Record<string, string> = {
-  'Technology': '#3b82f6',
-  'Healthcare': '#22c55e',
-  'Financials': '#f59e0b',
-  'Consumer Discretionary': '#a855f7',
-  'Consumer Staples': '#ec4899',
-  'Energy': '#ef4444',
-  'Industrials': '#6366f1',
-  'Communication Services': '#14b8a6',
-  'Utilities': '#84cc16',
-  'Materials': '#f97316',
-  'Real Estate': '#06b6d4',
-};
+// Re-export for backward compat (used by tests and Heatmap)
+export { SECTOR_COLORS };
+export type { Stock, Sector };

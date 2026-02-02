@@ -1,36 +1,19 @@
 import { useEffect, useRef, useMemo, useState, useCallback } from 'react';
 import { createChart, type IChartApi, ColorType, LineSeries } from 'lightweight-charts';
-import { useStore, type ChartTimeframe } from '../store';
-import { generateCandlestickData, STOCK_PRESETS, type Candle } from '../data/candlestickData';
+import { useStore } from '../store';
+import { generateCandlestickData } from '../data/candlestickData';
+import {
+  STOCK_PRESETS,
+  COMPARISON_COLORS,
+  MAX_COMPARISON_STOCKS,
+  TIMEFRAME_DAYS,
+  POPULAR_SYMBOLS,
+  CHART_THEME,
+} from '../constants';
+import type { ChartTimeframe, Candle } from '../types';
+import { normalizeToPercent } from '../utils';
+import { toLineData } from '../chartHelpers';
 import { X, Plus, GitCompareArrows } from 'lucide-react';
-
-const COMPARISON_COLORS = [
-  '#3b82f6', // blue (primary)
-  '#f59e0b', // amber
-  '#a855f7', // purple
-  '#22c55e', // green
-  '#ec4899', // pink
-  '#14b8a6', // teal
-  '#ef4444', // red
-  '#6366f1', // indigo
-];
-
-const TIMEFRAME_DAYS: Record<ChartTimeframe, number> = {
-  '1M': 30,
-  '3M': 90,
-  '6M': 180,
-  '1Y': 365,
-};
-
-function normalizeToPercent(candles: Candle[]): { time: string; value: number }[] {
-  if (candles.length === 0) return [];
-  const basePrice = candles[0].open;
-  if (basePrice === 0) return [];
-  return candles.map(c => ({
-    time: c.time,
-    value: Number((((c.close - basePrice) / basePrice) * 100).toFixed(2)),
-  }));
-}
 
 function getCandlesForSymbol(symbol: string, timeframe: ChartTimeframe): Candle[] {
   const preset = STOCK_PRESETS[symbol] || { price: 100, volatility: 0.02, trend: 0.0003 };
@@ -51,12 +34,12 @@ export default function ComparisonChart({ onClose }: Props) {
   const [addMenuOpen, setAddMenuOpen] = useState(false);
 
   const availableSymbols = useMemo(
-    () => Object.keys(STOCK_PRESETS).filter(s => !compareSymbols.includes(s)),
+    () => POPULAR_SYMBOLS.filter(s => !compareSymbols.includes(s)),
     [compareSymbols]
   );
 
   const addSymbol = useCallback((s: string) => {
-    if (compareSymbols.length < 8 && !compareSymbols.includes(s)) {
+    if (compareSymbols.length < MAX_COMPARISON_STOCKS && !compareSymbols.includes(s)) {
       setCompareSymbols(prev => [...prev, s]);
     }
     setAddMenuOpen(false);
@@ -80,36 +63,34 @@ export default function ComparisonChart({ onClose }: Props) {
       width: container.clientWidth,
       height: container.clientHeight,
       layout: {
-        background: { type: ColorType.Solid, color: '#0a0e17' },
-        textColor: '#94a3b8',
-        fontSize: 11,
+        background: { type: ColorType.Solid, color: CHART_THEME.background },
+        textColor: CHART_THEME.textColor,
+        fontSize: CHART_THEME.fontSize,
       },
       grid: {
-        vertLines: { color: '#1e2a3a' },
-        horzLines: { color: '#1e2a3a' },
+        vertLines: { color: CHART_THEME.gridColor },
+        horzLines: { color: CHART_THEME.gridColor },
       },
       crosshair: {
-        vertLine: { color: '#475569', labelBackgroundColor: '#334155' },
-        horzLine: { color: '#475569', labelBackgroundColor: '#334155' },
+        vertLine: { color: CHART_THEME.crosshairColor, labelBackgroundColor: CHART_THEME.crosshairLabelBg },
+        horzLine: { color: CHART_THEME.crosshairColor, labelBackgroundColor: CHART_THEME.crosshairLabelBg },
       },
-      rightPriceScale: {
-        borderColor: '#1e2a3a',
-      },
-      timeScale: { borderColor: '#1e2a3a', timeVisible: false },
+      rightPriceScale: { borderColor: CHART_THEME.borderColor },
+      timeScale: { borderColor: CHART_THEME.borderColor, timeVisible: false },
     });
     chartRef.current = chart;
 
     // Add zero line
     if (compareSymbols.length > 0) {
       const firstCandles = getCandlesForSymbol(compareSymbols[0], chartTimeframe);
-      const zeroData = firstCandles.map(c => ({ time: c.time, value: 0 }));
+      const zeroData = toLineData(firstCandles.map(c => ({ time: c.time, value: 0 })));
       const zeroSeries = chart.addSeries(LineSeries, {
         color: 'rgba(148, 163, 184, 0.2)',
         lineWidth: 1,
         priceLineVisible: false,
         lastValueVisible: false,
       });
-      zeroSeries.setData(zeroData as Parameters<typeof zeroSeries.setData>[0]);
+      zeroSeries.setData(zeroData);
     }
 
     // Add each comparison stock
@@ -125,7 +106,7 @@ export default function ComparisonChart({ onClose }: Props) {
         lastValueVisible: true,
         title: symbol,
       });
-      series.setData(normalized as Parameters<typeof series.setData>[0]);
+      series.setData(toLineData(normalized));
     });
 
     chart.timeScale().fitContent();
@@ -182,7 +163,7 @@ export default function ComparisonChart({ onClose }: Props) {
           ))}
 
           {/* Add button */}
-          {compareSymbols.length < 8 && (
+          {compareSymbols.length < MAX_COMPARISON_STOCKS && (
             <div className="relative">
               <button
                 onClick={() => setAddMenuOpen(!addMenuOpen)}

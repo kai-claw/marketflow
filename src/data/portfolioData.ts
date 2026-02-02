@@ -1,30 +1,9 @@
 // Portfolio simulator data and logic
 
-export interface Position {
-  symbol: string;
-  shares: number;
-  avgCost: number;
-  currentPrice: number;
-}
+import type { Portfolio, Position, TradeResult, PnL } from '../types';
+import { DEFAULT_STARTING_CASH } from '../constants';
 
-export interface Trade {
-  id: string;
-  symbol: string;
-  type: 'buy' | 'sell';
-  shares: number;
-  price: number;
-  timestamp: number;
-  total: number;
-}
-
-export interface Portfolio {
-  cash: number;
-  positions: Position[];
-  trades: Trade[];
-  startingCash: number;
-}
-
-export function createPortfolio(startingCash: number = 100000): Portfolio {
+export function createPortfolio(startingCash: number = DEFAULT_STARTING_CASH): Portfolio {
   return {
     cash: startingCash,
     positions: [],
@@ -39,7 +18,7 @@ export function executeTrade(
   type: 'buy' | 'sell',
   shares: number,
   price: number
-): { success: boolean; error?: string; portfolio: Portfolio } {
+): TradeResult {
   // Validate inputs
   if (!Number.isFinite(shares) || shares <= 0 || !Number.isInteger(shares)) {
     return { success: false, error: 'Shares must be a positive integer', portfolio };
@@ -56,14 +35,18 @@ export function executeTrade(
     positions: newPositions,
     trades: [...portfolio.trades],
   };
-  
+
   if (type === 'buy') {
     if (total > portfolio.cash) {
-      return { success: false, error: `Insufficient funds. Need $${total.toFixed(2)}, have $${portfolio.cash.toFixed(2)}`, portfolio };
+      return {
+        success: false,
+        error: `Insufficient funds. Need $${total.toFixed(2)}, have $${portfolio.cash.toFixed(2)}`,
+        portfolio,
+      };
     }
-    
+
     newPortfolio.cash -= total;
-    
+
     const existingIdx = newPortfolio.positions.findIndex(p => p.symbol === symbol);
     if (existingIdx >= 0) {
       const existing = newPortfolio.positions[existingIdx];
@@ -81,11 +64,15 @@ export function executeTrade(
     const existingIdx = newPortfolio.positions.findIndex(p => p.symbol === symbol);
     const existing = existingIdx >= 0 ? newPortfolio.positions[existingIdx] : null;
     if (!existing || existing.shares < shares) {
-      return { success: false, error: `Insufficient shares. Have ${existing?.shares || 0}, trying to sell ${shares}`, portfolio };
+      return {
+        success: false,
+        error: `Insufficient shares. Have ${existing?.shares || 0}, trying to sell ${shares}`,
+        portfolio,
+      };
     }
-    
+
     newPortfolio.cash += total;
-    
+
     if (existing.shares === shares) {
       newPortfolio.positions = newPortfolio.positions.filter((_, i) => i !== existingIdx);
     } else {
@@ -96,7 +83,7 @@ export function executeTrade(
       };
     }
   }
-  
+
   newPortfolio.trades.push({
     id: `T${Date.now()}-${Math.random().toString(36).slice(2, 6)}`,
     symbol,
@@ -106,7 +93,7 @@ export function executeTrade(
     timestamp: Date.now(),
     total,
   });
-  
+
   return { success: true, portfolio: newPortfolio };
 }
 
@@ -118,7 +105,7 @@ export function getPortfolioValue(portfolio: Portfolio): number {
   return Number.isFinite(total) ? total : portfolio.cash;
 }
 
-export function getPortfolioReturn(portfolio: Portfolio): { absolute: number; percent: number } {
+export function getPortfolioReturn(portfolio: Portfolio): PnL {
   const currentValue = getPortfolioValue(portfolio);
   const absolute = currentValue - portfolio.startingCash;
   const percent = portfolio.startingCash > 0 ? (absolute / portfolio.startingCash) * 100 : 0;
@@ -128,7 +115,7 @@ export function getPortfolioReturn(portfolio: Portfolio): { absolute: number; pe
   };
 }
 
-export function getPositionPnL(position: Position): { absolute: number; percent: number } {
+export function getPositionPnL(position: Position): PnL {
   const absolute = (position.currentPrice - position.avgCost) * position.shares;
   const percent = position.avgCost > 0
     ? ((position.currentPrice - position.avgCost) / position.avgCost) * 100
@@ -138,3 +125,6 @@ export function getPositionPnL(position: Position): { absolute: number; percent:
     percent: Number.isFinite(percent) ? percent : 0,
   };
 }
+
+// Re-export types for backward compat
+export type { Portfolio, Position, Trade, PnL } from '../types';

@@ -1,26 +1,17 @@
 import { useEffect, useRef, useState, useCallback } from 'react';
-import { useStore, type ChartTimeframe, type Indicator, CINEMATIC_STOCKS, CINEMATIC_INTERVAL } from '../store';
-import { STOCK_PRESETS } from '../data/candlestickData';
+import { useStore } from '../store';
+import {
+  TIMEFRAMES,
+  INDICATORS,
+  CINEMATIC_STOCKS,
+  CINEMATIC_INTERVAL,
+  POPULAR_SYMBOLS,
+} from '../constants';
 import CandlestickChart from './CandlestickChart';
 import RSIChart from './RSIChart';
 import MACDChart from './MACDChart';
 import ComparisonChart from './ComparisonChart';
 import { GitCompareArrows, Play, Pause } from 'lucide-react';
-
-const TIMEFRAMES: ChartTimeframe[] = ['1M', '3M', '6M', '1Y'];
-
-const INDICATORS: { id: Indicator; label: string; color: string }[] = [
-  { id: 'volume', label: 'VOL', color: '#64748b' },
-  { id: 'sma20', label: 'SMA 20', color: '#f59e0b' },
-  { id: 'sma50', label: 'SMA 50', color: '#a855f7' },
-  { id: 'ema12', label: 'EMA 12', color: '#3b82f6' },
-  { id: 'ema26', label: 'EMA 26', color: '#14b8a6' },
-  { id: 'bollinger', label: 'BB', color: '#6366f1' },
-  { id: 'rsi', label: 'RSI', color: '#a855f7' },
-  { id: 'macd', label: 'MACD', color: '#3b82f6' },
-];
-
-const POPULAR_SYMBOLS = Object.keys(STOCK_PRESETS);
 
 export default function ChartView() {
   const {
@@ -47,7 +38,7 @@ export default function ChartView() {
     setCinematicActive(!cinematicActive);
     if (!cinematicActive) {
       // Starting: find current stock in cinematic list or start at 0
-      const idx = CINEMATIC_STOCKS.indexOf(selectedSymbol);
+      const idx = CINEMATIC_STOCKS.indexOf(selectedSymbol as typeof CINEMATIC_STOCKS[number]);
       setCinematicIndex(idx >= 0 ? idx : 0);
       setCinematicProgress(0);
     }
@@ -58,16 +49,16 @@ export default function ChartView() {
 
     let startTime = Date.now();
     let cancelled = false;
-    
+
     // Set the initial stock
     setSelectedSymbol(CINEMATIC_STOCKS[cinematicIndex]);
-    
+
     const tick = () => {
       if (cancelled) return;
       const elapsed = Date.now() - startTime;
       const progress = Math.min(elapsed / CINEMATIC_INTERVAL, 1);
       setCinematicProgress(progress);
-      
+
       if (progress >= 1) {
         // Advance to next stock
         startTime = Date.now();
@@ -78,7 +69,7 @@ export default function ChartView() {
         });
         setCinematicProgress(0);
       }
-      
+
       progressRafRef.current = requestAnimationFrame(tick);
     };
 

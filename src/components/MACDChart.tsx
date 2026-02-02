@@ -1,7 +1,9 @@
 import { useEffect, useRef } from 'react';
 import { createChart, type IChartApi, ColorType, LineSeries, HistogramSeries } from 'lightweight-charts';
 import { useStore } from '../store';
-import { calculateMACD } from '../data/candlestickData';
+import { calculateMACD } from '../data/indicators';
+import { CHART_THEME } from '../constants';
+import { toLineData, toHistogramData } from '../chartHelpers';
 
 export default function MACDChart() {
   const containerRef = useRef<HTMLDivElement>(null);
@@ -21,20 +23,20 @@ export default function MACDChart() {
       width: container.clientWidth,
       height: container.clientHeight,
       layout: {
-        background: { type: ColorType.Solid, color: '#0a0e17' },
-        textColor: '#94a3b8',
+        background: { type: ColorType.Solid, color: CHART_THEME.background },
+        textColor: CHART_THEME.textColor,
         fontSize: 10,
       },
       grid: {
-        vertLines: { color: '#1e2a3a' },
-        horzLines: { color: '#1e2a3a' },
+        vertLines: { color: CHART_THEME.gridColor },
+        horzLines: { color: CHART_THEME.gridColor },
       },
       crosshair: {
-        vertLine: { color: '#475569', labelBackgroundColor: '#334155' },
-        horzLine: { color: '#475569', labelBackgroundColor: '#334155' },
+        vertLine: { color: CHART_THEME.crosshairColor, labelBackgroundColor: CHART_THEME.crosshairLabelBg },
+        horzLine: { color: CHART_THEME.crosshairColor, labelBackgroundColor: CHART_THEME.crosshairLabelBg },
       },
-      rightPriceScale: { borderColor: '#1e2a3a' },
-      timeScale: { borderColor: '#1e2a3a', visible: false },
+      rightPriceScale: { borderColor: CHART_THEME.borderColor },
+      timeScale: { borderColor: CHART_THEME.borderColor, visible: false },
     });
 
     chartRef.current = chart;
@@ -46,7 +48,7 @@ export default function MACDChart() {
       priceScaleId: 'macd',
       priceFormat: { type: 'price', precision: 4, minMove: 0.0001 },
     });
-    histSeries.setData(histogram as any);
+    histSeries.setData(toHistogramData(histogram));
 
     // MACD line
     const macdSeries = chart.addSeries(LineSeries, {
@@ -56,7 +58,7 @@ export default function MACDChart() {
       lastValueVisible: false,
       priceScaleId: 'macd',
     });
-    macdSeries.setData(macd as any);
+    macdSeries.setData(toLineData(macd));
 
     // Signal line
     const signalSeries = chart.addSeries(LineSeries, {
@@ -66,7 +68,7 @@ export default function MACDChart() {
       lastValueVisible: false,
       priceScaleId: 'macd',
     });
-    signalSeries.setData(signal as any);
+    signalSeries.setData(toLineData(signal));
 
     chart.timeScale().fitContent();
 
