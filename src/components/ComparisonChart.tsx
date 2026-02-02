@@ -212,7 +212,7 @@ export default function ComparisonChart({ onClose }: Props) {
 
         <button
           onClick={onClose}
-          className="p-1 rounded hover:bg-white/10 text-[var(--text-secondary)] hover:text-white transition-colors shrink-0"
+          className="compare-close-btn p-1 rounded hover:bg-white/10 text-[var(--text-secondary)] hover:text-white shrink-0"
           aria-label="Close comparison mode"
         >
           <X size={14} />

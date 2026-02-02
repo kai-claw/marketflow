@@ -262,12 +262,12 @@ export default function Heatmap() {
   };
 
   return (
-    <div className="flex flex-col h-full" id="panel-heatmap" role="tabpanel" aria-label="Market Map">
+    <div className="view-enter flex flex-col h-full" id="panel-heatmap" role="tabpanel" aria-label="Market Map">
       {/* Sector legend */}
       <div className="flex items-center gap-2 sm:gap-4 px-2 sm:px-4 py-2 border-b border-[var(--border)] bg-[var(--bg-secondary)] overflow-x-auto">
         <div className="flex items-center gap-2 sm:gap-3 flex-wrap">
           {sectors.slice(0, 8).map(sector => (
-            <div key={sector.name} className="flex items-center gap-1.5 shrink-0">
+            <div key={sector.name} className="sector-legend-item flex items-center gap-1.5 shrink-0">
               <div
                 className="w-2.5 h-2.5 rounded-sm"
                 style={{ background: SECTOR_COLORS[sector.name] }}
@@ -303,11 +303,13 @@ export default function Heatmap() {
           role="img"
           aria-label="Stock market treemap heatmap showing sector allocation and daily performance"
         />
+        {/* Cinematic vignette */}
+        <div className="heatmap-vignette" />
 
         {/* Tooltip */}
         {tooltip && (
           <div
-            className="absolute pointer-events-none z-50 bg-[var(--bg-card)] border border-[var(--border)] rounded-lg px-3 py-2 shadow-xl"
+            className="heatmap-tooltip absolute pointer-events-none z-50 bg-[var(--bg-card)]/95 backdrop-blur-sm border border-[var(--border)] rounded-lg px-3 py-2 shadow-xl"
             role="tooltip"
             style={getTooltipStyle()}
           >
@@ -331,9 +333,11 @@ export default function Heatmap() {
       {/* Color scale legend */}
       <div className="flex items-center justify-center gap-0 px-4 py-2 border-t border-[var(--border)] bg-[var(--bg-secondary)]" aria-label="Color scale: red (-3%+) to green (+3%+)">
         <span className="text-[10px] text-[var(--text-secondary)] mr-2">-3%+</span>
-        {['#b91c1c', '#dc2626', '#ef4444', '#f87171', '#fca5a5', '#86efac', '#4ade80', '#22c55e', '#16a34a', '#15803d'].map((color, i) => (
-          <div key={i} className="w-4 sm:w-6 h-3" style={{ background: color }} aria-hidden="true" />
-        ))}
+        <div className="color-scale-bar flex">
+          {['#b91c1c', '#dc2626', '#ef4444', '#f87171', '#fca5a5', '#86efac', '#4ade80', '#22c55e', '#16a34a', '#15803d'].map((color, i) => (
+            <div key={i} className="w-4 sm:w-6 h-3" style={{ background: color }} aria-hidden="true" />
+          ))}
+        </div>
         <span className="text-[10px] text-[var(--text-secondary)] ml-2">+3%+</span>
       </div>
     </div>

@@ -89,7 +89,7 @@ export default function PortfolioView() {
   const cashPct = totalValue > 0 ? ((portfolio.cash / totalValue) * 100).toFixed(1) : '100.0';
 
   return (
-    <div className="flex flex-col h-full overflow-y-auto" id="panel-portfolio" role="tabpanel" aria-label="Portfolio">
+    <div className="view-enter flex flex-col h-full overflow-y-auto" id="panel-portfolio" role="tabpanel" aria-label="Portfolio">
       {/* Portfolio summary cards */}
       <div className="grid grid-cols-2 lg:grid-cols-4 gap-2 sm:gap-3 p-2 sm:p-4">
         <SummaryCard
@@ -124,7 +124,7 @@ export default function PortfolioView() {
 
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-2 sm:gap-4 px-2 sm:px-4 pb-2 sm:pb-4 flex-1 min-h-0">
         {/* Trade panel */}
-        <div className="bg-[var(--bg-secondary)] rounded-xl border border-[var(--border)] p-3 sm:p-4 flex flex-col" role="form" aria-label="Trade stocks">
+        <div className="trade-panel bg-[var(--bg-secondary)] rounded-xl border border-[var(--border)] p-3 sm:p-4 flex flex-col" role="form" aria-label="Trade stocks">
           <div className="flex items-center justify-between mb-3 sm:mb-4">
             <h2 className="text-sm font-semibold flex items-center gap-2">
               <ShoppingCart size={16} aria-hidden="true" />
@@ -178,18 +178,18 @@ export default function PortfolioView() {
             </div>
 
             {tradePrice > 0 && (
-              <div id="trade-estimate" className="bg-[var(--bg-card)] rounded-lg p-3 text-xs space-y-1">
-                <div className="flex justify-between text-[var(--text-secondary)]">
+              <div id="trade-estimate" className="trade-estimate bg-[var(--bg-card)] rounded-lg p-3 text-xs space-y-1">
+                <div className="est-row flex justify-between text-[var(--text-secondary)]">
                   <span>Price</span>
                   <span className="text-white font-mono">${tradePrice.toFixed(2)}</span>
                 </div>
-                <div className="flex justify-between text-[var(--text-secondary)]">
+                <div className="est-row flex justify-between text-[var(--text-secondary)]">
                   <span>Est. Total</span>
                   <span className="text-white font-mono">
                     ${(tradePrice * (parseInt(tradeShares, 10) || 0)).toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
                   </span>
                 </div>
-                <div className="flex justify-between text-[var(--text-secondary)]">
+                <div className="est-row flex justify-between text-[var(--text-secondary)]">
                   <span>Available Cash</span>
                   <span className="text-white font-mono">
                     ${portfolio.cash.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
@@ -201,14 +201,14 @@ export default function PortfolioView() {
             <div className="flex gap-2">
               <button
                 onClick={() => handleTrade('buy')}
-                className="flex-1 flex items-center justify-center gap-1.5 bg-green-600 hover:bg-green-500 text-white py-2.5 rounded-lg text-sm font-semibold transition-colors focus-visible:ring-2 focus-visible:ring-green-400"
+                className="trade-btn-buy flex-1 flex items-center justify-center gap-1.5 bg-green-600 hover:bg-green-500 text-white py-2.5 rounded-lg text-sm font-semibold focus-visible:ring-2 focus-visible:ring-green-400"
               >
                 <ArrowUpCircle size={16} aria-hidden="true" />
                 Buy
               </button>
               <button
                 onClick={() => handleTrade('sell')}
-                className="flex-1 flex items-center justify-center gap-1.5 bg-red-600 hover:bg-red-500 text-white py-2.5 rounded-lg text-sm font-semibold transition-colors focus-visible:ring-2 focus-visible:ring-red-400"
+                className="trade-btn-sell flex-1 flex items-center justify-center gap-1.5 bg-red-600 hover:bg-red-500 text-white py-2.5 rounded-lg text-sm font-semibold focus-visible:ring-2 focus-visible:ring-red-400"
               >
                 <ArrowDownCircle size={16} aria-hidden="true" />
                 Sell
@@ -216,12 +216,12 @@ export default function PortfolioView() {
             </div>
 
             {tradeError && (
-              <div role="alert" className="bg-red-900/30 border border-red-800/50 text-red-400 text-xs px-3 py-2 rounded-lg">
+              <div role="alert" className="trade-alert bg-red-900/30 border border-red-800/50 text-red-400 text-xs px-3 py-2 rounded-lg">
                 {tradeError}
               </div>
             )}
             {tradeSuccess && (
-              <div role="status" className="bg-green-900/30 border border-green-800/50 text-green-400 text-xs px-3 py-2 rounded-lg">
+              <div role="status" className="trade-alert bg-green-900/30 border border-green-800/50 text-green-400 text-xs px-3 py-2 rounded-lg">
                 {tradeSuccess}
               </div>
             )}
@@ -258,7 +258,7 @@ export default function PortfolioView() {
                   {enrichedPositions.map((p) => (
                     <tr
                       key={p.symbol}
-                      className="border-b border-[var(--border)]/50 hover:bg-[var(--bg-card)] cursor-pointer transition-colors"
+                      className="holdings-row border-b border-[var(--border)]/50 cursor-pointer"
                       onClick={() => { setSelectedSymbol(p.symbol); setView('chart'); }}
                       onKeyDown={(e) => {
                         if (e.key === 'Enter' || e.key === ' ') {
@@ -322,7 +322,7 @@ export default function PortfolioView() {
                 </thead>
                 <tbody>
                   {[...portfolio.trades].reverse().map((t) => (
-                    <tr key={t.id} className="border-b border-[var(--border)]/50">
+                    <tr key={t.id} className="trade-history-row border-b border-[var(--border)]/50">
                       <td className="py-2 text-[var(--text-secondary)] font-mono">
                         {new Date(t.timestamp).toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit', second: '2-digit' })}
                       </td>

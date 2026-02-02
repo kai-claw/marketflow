@@ -30,15 +30,15 @@ body {
 ::-webkit-scrollbar { width: 6px; height: 6px; }
 ::-webkit-scrollbar-track { background: var(--bg-primary); }
 ::-webkit-scrollbar-thumb { background: #334155; border-radius: 3px; }
-::-webkit-scrollbar-thumb:hover { background: #475569; }
+::-webkit-scrollbar-thumb:hover { background: var(--green); }
 
 /* ===== App entrance fade ===== */
 .app-entrance {
-  animation: appFadeIn 0.6s ease-out;
+  animation: appFadeIn 0.8s ease-out;
 }
 @keyframes appFadeIn {
-  from { opacity: 0; }
-  to { opacity: 1; }
+  from { opacity: 0; filter: blur(4px); }
+  to { opacity: 1; filter: blur(0); }
 }
 
 /* ===== Header title shimmer ===== */
@@ -55,12 +55,18 @@ body {
   50% { background-position: 100% 50%; }
 }
 
+/* ===== Header bar depth ===== */
+.header-bar {
+  box-shadow: 0 1px 0 rgba(30, 42, 58, 0.6), 0 4px 16px rgba(0, 0, 0, 0.25);
+}
+
 /* ===== Header logo glow ===== */
 .header-logo {
-  transition: box-shadow 0.3s ease;
+  transition: box-shadow 0.3s ease, transform 0.25s cubic-bezier(0.34, 1.56, 0.64, 1);
 }
 .header-logo:hover {
   box-shadow: 0 0 16px rgba(34, 197, 94, 0.3);
+  transform: scale(1.05);
 }
 
 /* ===== Mood indicator slide-in ===== */
@@ -75,9 +81,11 @@ body {
 /* ===== Nav tab bounce ===== */
 .nav-tab {
   transition: all 0.2s cubic-bezier(0.34, 1.56, 0.64, 1);
+  position: relative;
 }
 .nav-tab:hover {
   transform: translateY(-1px);
+  text-shadow: 0 0 8px rgba(255, 255, 255, 0.15);
 }
 .nav-tab:active {
   transform: scale(0.95);
@@ -85,19 +93,45 @@ body {
 .nav-tab-active {
   animation: tabBounce 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
 }
+.nav-tab-active::after {
+  content: '';
+  position: absolute;
+  bottom: -1px;
+  left: 25%;
+  right: 25%;
+  height: 2px;
+  background: var(--green);
+  border-radius: 1px;
+  opacity: 0.6;
+  animation: tabIndicatorIn 0.3s ease-out;
+}
 @keyframes tabBounce {
   0% { transform: scale(0.92); }
   60% { transform: scale(1.05); }
   100% { transform: scale(1); }
 }
+@keyframes tabIndicatorIn {
+  from { transform: scaleX(0); opacity: 0; }
+  to { transform: scaleX(1); opacity: 0.6; }
+}
 
 /* ===== Treemap cell ===== */
 .treemap-cell {
-  transition: opacity 0.15s;
+  transition: opacity 0.15s, filter 0.15s;
   cursor: pointer;
 }
 .treemap-cell:hover {
   opacity: 0.85;
+  filter: brightness(1.15);
+}
+
+/* ===== Heatmap vignette for depth ===== */
+.heatmap-vignette {
+  pointer-events: none;
+  position: absolute;
+  inset: 0;
+  z-index: 1;
+  background: radial-gradient(ellipse at center, transparent 55%, rgba(10, 14, 23, 0.5) 100%);
 }
 
 /* ===== Heatmap breathing pulse ===== */
@@ -109,6 +143,16 @@ body {
 /* ===== Market ticker ===== */
 .ticker-container {
   height: 28px;
+  position: relative;
+}
+.ticker-container::after {
+  content: '';
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  height: 1px;
+  background: linear-gradient(90deg, transparent, rgba(34, 197, 94, 0.12) 30%, rgba(59, 130, 246, 0.12) 70%, transparent);
 }
 .ticker-item {
   transition: all 0.15s cubic-bezier(0.34, 1.56, 0.64, 1);
@@ -116,6 +160,7 @@ body {
 .ticker-item:hover {
   background: rgba(255, 255, 255, 0.05);
   transform: translateY(-1px);
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.2);
 }
 
 /* ===== Comparison chip ===== */
@@ -145,6 +190,12 @@ button:active {
 }
 
 /* ===== Cinematic button ===== */
+.cinematic-btn {
+  transition: all 0.2s cubic-bezier(0.34, 1.56, 0.64, 1);
+}
+.cinematic-btn:hover {
+  transform: translateY(-1px);
+}
 .cinematic-btn-active {
   animation: cinematicBtnGlow 2s ease-in-out infinite;
 }
@@ -273,14 +324,215 @@ select:focus {
 .help-panel {
   animation: helpPanelIn 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
 }
+.help-panel h2 {
+  text-shadow: 0 0 12px rgba(255, 255, 255, 0.1);
+}
 @keyframes helpPanelIn {
   from { opacity: 0; transform: translateY(16px) scale(0.96); filter: blur(4px); }
   to { opacity: 1; transform: translateY(0) scale(1); filter: blur(0); }
 }
 
-/* ===== Portfolio summary card hover ===== */
+/* ===== Help shortcut rows ===== */
+.shortcut-row {
+  transition: background 0.15s ease;
+  padding: 4px 6px;
+  margin: 0 -6px;
+  border-radius: 6px;
+}
+.shortcut-row:hover {
+  background: rgba(255, 255, 255, 0.03);
+}
+
+/* ===== View content crossfade ===== */
+.view-enter {
+  animation: viewFadeIn 0.25s ease-out;
+}
+@keyframes viewFadeIn {
+  from { opacity: 0; transform: translateY(4px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+/* ===== Portfolio summary card hover & entrance ===== */
 .summary-card {
+  transition: all 0.25s cubic-bezier(0.34, 1.56, 0.64, 1);
+  animation: cardRiseIn 0.4s ease-out both;
+}
+.summary-card:nth-child(1) { animation-delay: 0ms; }
+.summary-card:nth-child(2) { animation-delay: 60ms; }
+.summary-card:nth-child(3) { animation-delay: 120ms; }
+.summary-card:nth-child(4) { animation-delay: 180ms; }
+.summary-card:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.3);
+}
+@keyframes cardRiseIn {
+  from { opacity: 0; transform: translateY(8px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+/* ===== Heatmap tooltip entrance ===== */
+.heatmap-tooltip {
+  animation: tooltipFadeIn 0.12s ease-out;
+}
+@keyframes tooltipFadeIn {
+  from { opacity: 0; transform: scale(0.96); }
+  to { opacity: 1; transform: scale(1); }
+}
+
+/* ===== Trade alert entrance ===== */
+.trade-alert {
+  animation: tradeAlertIn 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
+}
+@keyframes tradeAlertIn {
+  from { opacity: 0; transform: translateY(-6px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+/* ===== OHLC value glow ===== */
+.ohlc-bar {
+  background: linear-gradient(90deg, var(--bg-secondary), rgba(17, 24, 39, 0.6));
+}
+.ohlc-value {
+  text-shadow: 0 0 6px currentColor;
+  transition: text-shadow 0.2s ease;
+}
+
+/* ===== Holdings row hover ===== */
+.holdings-row {
+  transition: all 0.15s ease;
+}
+.holdings-row:hover {
+  background: var(--bg-card) !important;
+  transform: translateX(2px);
+  box-shadow: inset 3px 0 0 var(--green);
+}
+
+/* ===== Trade button gravitas ===== */
+.trade-btn-buy {
   transition: all 0.2s cubic-bezier(0.34, 1.56, 0.64, 1);
+  box-shadow: 0 2px 8px rgba(34, 197, 94, 0.15);
+}
+.trade-btn-buy:hover {
+  box-shadow: 0 4px 16px rgba(34, 197, 94, 0.3);
+  transform: translateY(-1px);
+}
+.trade-btn-buy:active {
+  transform: translateY(0) scale(0.97);
+  box-shadow: 0 1px 4px rgba(34, 197, 94, 0.2);
+}
+.trade-btn-sell {
+  transition: all 0.2s cubic-bezier(0.34, 1.56, 0.64, 1);
+  box-shadow: 0 2px 8px rgba(239, 68, 68, 0.15);
+}
+.trade-btn-sell:hover {
+  box-shadow: 0 4px 16px rgba(239, 68, 68, 0.3);
+  transform: translateY(-1px);
+}
+.trade-btn-sell:active {
+  transform: translateY(0) scale(0.97);
+  box-shadow: 0 1px 4px rgba(239, 68, 68, 0.2);
+}
+
+/* ===== Indicator pill active glow ===== */
+.indicator-pill {
+  transition: all 0.2s cubic-bezier(0.34, 1.56, 0.64, 1);
+}
+.indicator-pill:hover {
+  transform: translateY(-1px);
+}
+.indicator-pill-active {
+  box-shadow: 0 0 8px var(--pill-color, rgba(255,255,255,0.1));
+}
+
+/* ===== Timeframe button active ===== */
+.timeframe-btn {
+  transition: all 0.15s cubic-bezier(0.34, 1.56, 0.64, 1);
+}
+.timeframe-btn-active {
+  animation: timeframeBounce 0.2s cubic-bezier(0.34, 1.56, 0.64, 1);
+  box-shadow: 0 0 8px rgba(59, 130, 246, 0.15);
+}
+@keyframes timeframeBounce {
+  0% { transform: scale(0.9); }
+  60% { transform: scale(1.06); }
+  100% { transform: scale(1); }
+}
+
+/* ===== Sector legend item hover ===== */
+.sector-legend-item {
+  transition: all 0.15s ease;
+  padding: 2px 4px;
+  border-radius: 4px;
+  margin: -2px -4px;
+}
+.sector-legend-item:hover {
+  background: rgba(255, 255, 255, 0.03);
+}
+
+/* ===== Price display ===== */
+.price-display {
+  font-variant-numeric: tabular-nums;
+  letter-spacing: -0.02em;
+}
+.price-change-up {
+  text-shadow: 0 0 8px rgba(34, 197, 94, 0.3);
+}
+.price-change-down {
+  text-shadow: 0 0 8px rgba(239, 68, 68, 0.3);
+}
+
+/* ===== Chart area depth ===== */
+.chart-area {
+  position: relative;
+}
+.chart-area::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 1px;
+  background: linear-gradient(90deg, transparent, rgba(59, 130, 246, 0.08), transparent);
+  z-index: 1;
+  pointer-events: none;
+}
+
+/* ===== Trade panel ===== */
+.trade-panel {
+  transition: border-color 0.3s ease;
+}
+.trade-panel:focus-within {
+  border-color: rgba(59, 130, 246, 0.3);
+}
+
+/* ===== Trade estimate card ===== */
+.trade-estimate {
+  transition: all 0.2s ease;
+}
+.trade-estimate .est-row {
+  transition: background 0.15s ease;
+  padding: 2px 0;
+  border-radius: 2px;
+}
+.trade-estimate .est-row:hover {
+  background: rgba(255, 255, 255, 0.02);
+}
+
+/* ===== Color scale legend glow ===== */
+.color-scale-bar {
+  box-shadow: 0 0 12px rgba(0, 0, 0, 0.3);
+  border-radius: 2px;
+  overflow: hidden;
+}
+
+/* ===== Play button enhanced breathing ===== */
+.play-btn-active {
+  box-shadow: 0 0 6px rgba(245, 158, 11, 0.2), inset 0 1px 2px rgba(245, 158, 11, 0.1);
+  animation: playBreath 2s ease-in-out infinite;
+}
+@keyframes playBreath {
+  0%, 100% { box-shadow: 0 0 6px rgba(245, 158, 11, 0.2), inset 0 1px 2px rgba(245, 158, 11, 0.1); }
+  50% { box-shadow: 0 0 16px rgba(245, 158, 11, 0.4), inset 0 1px 2px rgba(245, 158, 11, 0.2); }
 }
 
 /* ===== Indicator button activation ===== */
@@ -296,6 +548,16 @@ button[aria-pressed="true"] {
 /* ===== Glow classes ===== */
 .glow-green { box-shadow: 0 0 20px rgba(34, 197, 94, 0.15); }
 .glow-red { box-shadow: 0 0 20px rgba(239, 68, 68, 0.15); }
+
+/* ===== Input focus warmth ===== */
+input[type="number"],
+select {
+  transition: border-color 0.2s ease, box-shadow 0.2s ease, background-color 0.2s ease;
+}
+input[type="number"]:focus {
+  background-color: rgba(26, 34, 54, 0.8) !important;
+  box-shadow: 0 0 0 2px rgba(59, 130, 246, 0.12);
+}
 
 /* ===== Focus-visible outlines ===== */
 *:focus-visible {
@@ -314,6 +576,23 @@ button[aria-pressed="true"] {
   clip: rect(0, 0, 0, 0);
   white-space: nowrap;
   border-width: 0;
+}
+
+/* ===== Trade history row ===== */
+.trade-history-row {
+  transition: background 0.15s ease;
+}
+.trade-history-row:hover {
+  background: rgba(26, 34, 54, 0.5);
+}
+
+/* ===== Comparison close button ===== */
+.compare-close-btn {
+  transition: all 0.2s ease;
+}
+.compare-close-btn:hover {
+  background: rgba(239, 68, 68, 0.1) !important;
+  color: #ef4444 !important;
 }
 
 /* ===== Reduced motion ===== */

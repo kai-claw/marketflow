@@ -107,7 +107,7 @@ export default function App() {
 
 function ShortcutRow({ keys, desc }: { keys: string; desc: string }) {
   return (
-    <div className="flex items-center justify-between">
+    <div className="shortcut-row flex items-center justify-between">
       <span className="text-[var(--text-secondary)]">{desc}</span>
       <div className="flex gap-1">
         {keys.split('+').map(k => (

@@ -100,7 +100,7 @@ export default function ChartView() {
     : 0;
 
   return (
-    <div className="flex flex-col h-full" id="panel-chart" role="tabpanel" aria-label="Charts">
+    <div className="view-enter flex flex-col h-full" id="panel-chart" role="tabpanel" aria-label="Charts">
       {/* Top bar - symbol info */}
       <div className="flex flex-wrap items-center justify-between px-2 sm:px-4 py-2.5 border-b border-[var(--border)] bg-[var(--bg-secondary)] gap-2">
         <div className="flex items-center gap-2 sm:gap-4 flex-wrap">
@@ -126,8 +126,8 @@ export default function ChartView() {
           {/* Price */}
           {lastCandle && (
             <div className="flex items-center gap-2 sm:gap-3">
-              <span className="text-base sm:text-lg font-bold font-mono">${lastCandle.close.toFixed(2)}</span>
-              <div className={`text-xs sm:text-sm font-semibold ${dayChange >= 0 ? 'text-green-400' : 'text-red-400'}`}>
+              <span className="price-display text-base sm:text-lg font-bold font-mono">${lastCandle.close.toFixed(2)}</span>
+              <div className={`text-xs sm:text-sm font-semibold ${dayChange >= 0 ? 'text-green-400 price-change-up' : 'text-red-400 price-change-down'}`}>
                 <span aria-hidden="true">{dayChange >= 0 ? '▲' : '▼'}</span>
                 <span className="sr-only">{dayChange >= 0 ? 'up' : 'down'}</span>
                 {' '}{Math.abs(dayChange).toFixed(2)}%
@@ -146,9 +146,9 @@ export default function ChartView() {
           <button
             onClick={toggleCinematic}
             aria-pressed={cinematicActive}
-            className={`cinematic-btn flex items-center gap-1 px-2.5 py-1 rounded-md text-xs font-medium transition-all border ${
+            className={`cinematic-btn flex items-center gap-1 px-2.5 py-1 rounded-md text-xs font-medium border ${
               cinematicActive
-                ? 'bg-amber-600/20 border-amber-500/50 text-amber-400 cinematic-btn-active'
+                ? 'bg-amber-600/20 border-amber-500/50 text-amber-400 cinematic-btn-active play-btn-active'
                 : 'border-transparent text-[var(--text-secondary)] hover:text-white hover:bg-white/5'
             }`}
             title="Cinematic autoplay — cycle through stocks (A)"
@@ -176,9 +176,9 @@ export default function ChartView() {
                 role="radio"
                 aria-checked={chartTimeframe === tf}
                 onClick={() => setChartTimeframe(tf)}
-                className={`px-2.5 py-1 rounded-md text-xs font-medium transition-all ${
+                className={`timeframe-btn px-2.5 py-1 rounded-md text-xs font-medium ${
                   chartTimeframe === tf
-                    ? 'bg-[var(--bg-card)] text-white'
+                    ? 'bg-[var(--bg-card)] text-white timeframe-btn-active'
                     : 'text-[var(--text-secondary)] hover:text-white'
                 }`}
               >
@@ -192,34 +192,38 @@ export default function ChartView() {
       {/* Indicators bar */}
       <div className="flex items-center gap-1 sm:gap-1.5 px-2 sm:px-4 py-1.5 border-b border-[var(--border)] bg-[var(--bg-secondary)] overflow-x-auto">
         <span className="text-[10px] text-[var(--text-secondary)] mr-1 shrink-0">Indicators:</span>
-        {INDICATORS.map(ind => (
-          <button
-            key={ind.id}
-            onClick={() => toggleIndicator(ind.id)}
-            aria-pressed={activeIndicators.has(ind.id)}
-            className={`px-2 py-0.5 rounded text-[10px] font-medium transition-all border shrink-0 ${
-              activeIndicators.has(ind.id)
-                ? 'border-opacity-60 text-white'
-                : 'border-transparent text-[var(--text-secondary)] hover:text-white'
-            }`}
-            style={{
-              borderColor: activeIndicators.has(ind.id) ? ind.color : 'transparent',
-              backgroundColor: activeIndicators.has(ind.id) ? `${ind.color}20` : 'transparent',
-            }}
-          >
-            {ind.label}
-          </button>
-        ))}
+        {INDICATORS.map(ind => {
+          const isActive = activeIndicators.has(ind.id);
+          return (
+            <button
+              key={ind.id}
+              onClick={() => toggleIndicator(ind.id)}
+              aria-pressed={isActive}
+              className={`indicator-pill px-2 py-0.5 rounded text-[10px] font-medium border shrink-0 ${
+                isActive
+                  ? 'border-opacity-60 text-white indicator-pill-active'
+                  : 'border-transparent text-[var(--text-secondary)] hover:text-white'
+              }`}
+              style={{
+                borderColor: isActive ? ind.color : 'transparent',
+                backgroundColor: isActive ? `${ind.color}20` : 'transparent',
+                '--pill-color': `${ind.color}30`,
+              } as React.CSSProperties}
+            >
+              {ind.label}
+            </button>
+          );
+        })}
       </div>
 
       {/* OHLC bar */}
       {lastCandle && (
-        <div className="flex items-center gap-2 sm:gap-4 px-2 sm:px-4 py-1 border-b border-[var(--border)] text-[10px] font-mono text-[var(--text-secondary)] overflow-x-auto" aria-label="OHLCV data">
-          <span>O <span className="text-white">{lastCandle.open.toFixed(2)}</span></span>
-          <span>H <span className="text-green-400">{lastCandle.high.toFixed(2)}</span></span>
-          <span>L <span className="text-red-400">{lastCandle.low.toFixed(2)}</span></span>
-          <span>C <span className="text-white">{lastCandle.close.toFixed(2)}</span></span>
-          <span>Vol <span className="text-blue-400">{(lastCandle.volume / 1000000).toFixed(1)}M</span></span>
+        <div className="ohlc-bar flex items-center gap-2 sm:gap-4 px-2 sm:px-4 py-1 border-b border-[var(--border)] text-[10px] font-mono text-[var(--text-secondary)] overflow-x-auto" aria-label="OHLCV data">
+          <span>O <span className="ohlc-value text-white">{lastCandle.open.toFixed(2)}</span></span>
+          <span>H <span className="ohlc-value text-green-400">{lastCandle.high.toFixed(2)}</span></span>
+          <span>L <span className="ohlc-value text-red-400">{lastCandle.low.toFixed(2)}</span></span>
+          <span>C <span className="ohlc-value text-white">{lastCandle.close.toFixed(2)}</span></span>
+          <span>Vol <span className="ohlc-value text-blue-400">{(lastCandle.volume / 1000000).toFixed(1)}M</span></span>
         </div>
       )}
 
@@ -230,7 +234,7 @@ export default function ChartView() {
         </div>
       ) : (
         <>
-          <div className="flex-1 min-h-0 relative">
+          <div className="chart-area flex-1 min-h-0 relative">
             {candleData.length > 0 ? (
               <CandlestickChart />
             ) : (
