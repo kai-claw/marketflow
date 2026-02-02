@@ -10,9 +10,13 @@
     <meta name="theme-color" content="#0a0e17" />
     <link rel="canonical" href="https://kai-claw.github.io/marketflow/" />
 
-    <!-- Favicon -->
+    <!-- Favicon + PWA -->
     <link rel="icon" type="image/svg+xml" href="/marketflow/favicon.svg" />
     <link rel="apple-touch-icon" href="/marketflow/favicon.svg" />
+    <link rel="manifest" href="/marketflow/manifest.json" />
+    <meta name="apple-mobile-web-app-capable" content="yes" />
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
+    <meta name="apple-mobile-web-app-title" content="MarketFlow" />
 
     <!-- Open Graph -->
     <meta property="og:title" content="MarketFlow — Stock Market Visualizer" />
@@ -22,6 +26,8 @@
     <meta property="og:site_name" content="MarketFlow" />
     <meta property="og:image" content="https://kai-claw.github.io/marketflow/og-image.svg" />
     <meta property="og:image:alt" content="MarketFlow stock market heatmap and chart visualization" />
+    <meta property="og:image:width" content="1200" />
+    <meta property="og:image:height" content="630" />
 
     <!-- Twitter Card -->
     <meta name="twitter:card" content="summary_large_image" />
@@ -39,10 +45,21 @@
       "description": "Interactive stock market visualizer with treemap heatmap, candlestick charts with technical indicators, and portfolio trading simulator.",
       "url": "https://kai-claw.github.io/marketflow/",
       "applicationCategory": "FinanceApplication",
+      "applicationSubCategory": "Stock Market Visualization",
       "operatingSystem": "Web",
+      "browserRequirements": "Requires JavaScript, WebGL optional",
+      "softwareVersion": "1.0.0",
       "offers": { "@type": "Offer", "price": "0" },
       "author": { "@type": "Person", "name": "Christian" },
-      "license": "https://opensource.org/licenses/MIT"
+      "license": "https://opensource.org/licenses/MIT",
+      "featureList": "Treemap heatmap, Candlestick charts, SMA/EMA/RSI/MACD/Bollinger indicators, Portfolio simulator, Stock comparison, Sparkline overlays, Cinematic autoplay, Market ticker",
+      "screenshot": "https://kai-claw.github.io/marketflow/og-image.svg",
+      "isAccessibleForFree": true,
+      "about": {
+        "@type": "Thing",
+        "name": "Stock Market Analysis",
+        "sameAs": "https://en.wikipedia.org/wiki/Stock_market"
+      }
     }
     </script>
 
@@ -79,8 +96,8 @@
         font-size: 12px; margin-top: 16px; letter-spacing: 0.05em;
       }
     </style>
-    <script type="module" crossorigin src="/marketflow/assets/index-D6w3vzfd.js"></script>
-    <link rel="stylesheet" crossorigin href="/marketflow/assets/index-BDnw5li6.css">
+    <script type="module" crossorigin src="/marketflow/assets/index-DUnWaLde.js"></script>
+    <link rel="stylesheet" crossorigin href="/marketflow/assets/index-98L3u6dr.css">
   </head>
   <body>
     <!-- Loading spinner -->
