@@ -63,6 +63,7 @@ export default function App() {
           <div className="instructions-bar hidden sm:flex absolute bottom-2 left-1/2 -translate-x-1/2 z-10 items-center gap-3 px-4 py-1.5 rounded-full bg-[var(--bg-card)]/80 backdrop-blur-sm border border-[var(--border)]/50 text-[10px] text-[var(--text-secondary)] pointer-events-none">
             <span><kbd className="kbd">1</kbd><kbd className="kbd">2</kbd><kbd className="kbd">3</kbd> Views</span>
             <span><kbd className="kbd">H</kbd> Help</span>
+            {view === 'heatmap' && <span><kbd className="kbd">S</kbd> Sparklines</span>}
             {view === 'chart' && <span><kbd className="kbd">A</kbd> Autoplay</span>}
             {view === 'chart' && <span><kbd className="kbd">C</kbd> Compare</span>}
           </div>
@@ -86,6 +87,7 @@ export default function App() {
                 <ShortcutRow keys="2" desc="Charts view" />
                 <ShortcutRow keys="3" desc="Portfolio view" />
                 <div className="border-t border-[var(--border)] my-3" />
+                <ShortcutRow keys="S" desc="Toggle Sparklines (Map)" />
                 <ShortcutRow keys="A" desc="Cinematic Autoplay (Charts)" />
                 <ShortcutRow keys="C" desc="Compare Mode (Charts)" />
                 <ShortcutRow keys="H" desc="Toggle this help" />

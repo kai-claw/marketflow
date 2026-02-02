@@ -605,6 +605,36 @@ input[type="number"]:focus {
   }
 }
 
+/* ===== Sparkline toggle spring ===== */
+.sparkline-toggle {
+  transition: all 0.25s cubic-bezier(0.34, 1.56, 0.64, 1);
+}
+.sparkline-toggle:hover {
+  transform: translateY(-1px);
+}
+.sparkline-toggle:active {
+  transform: scale(0.95);
+}
+
+/* ===== Donut chart ===== */
+.donut-container {
+  animation: donutSlideIn 0.4s cubic-bezier(0.34, 1.56, 0.64, 1) both;
+}
+@keyframes donutSlideIn {
+  from { opacity: 0; transform: scale(0.95) translateY(6px); }
+  to { opacity: 1; transform: scale(1) translateY(0); }
+}
+.donut-tooltip {
+  animation: donutTooltipIn 0.15s ease-out both;
+}
+@keyframes donutTooltipIn {
+  from { opacity: 0; transform: scale(0.9); }
+  to { opacity: 1; transform: scale(1); }
+}
+.donut-arc {
+  transition: filter 0.2s ease;
+}
+
 /* ===== Mobile responsive breakpoint for xs labels ===== */
 @media (min-width: 480px) {
   .xs\:inline { display: inline !important; }

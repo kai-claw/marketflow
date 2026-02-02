@@ -29,3 +29,13 @@ export {
 
 // Market mood
 export { computeMarketMood, MOOD_THRESHOLDS } from './marketMood';
+
+// Sparklines
+export {
+  generateSparkline,
+  sparklineToPath,
+  sparklineToArea,
+  generateAllSparklines,
+  SPARKLINE_POINTS,
+} from './sparklines';
+export type { Sparkline } from './sparklines';

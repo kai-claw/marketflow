@@ -1,6 +1,7 @@
 import { useState, useMemo } from 'react';
 import { useStore } from '../store';
 import { getPortfolioValue, getPortfolioReturn, getPositionPnL } from '../data/portfolioData';
+import AllocationDonut from './AllocationDonut';
 import {
   DollarSign,
   TrendingUp,
@@ -118,7 +119,7 @@ export default function PortfolioView() {
         />
       </div>
 
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-2 sm:gap-4 px-2 sm:px-4 pb-2 sm:pb-4 flex-1 min-h-0">
+      <div className="grid grid-cols-1 lg:grid-cols-4 gap-2 sm:gap-4 px-2 sm:px-4 pb-2 sm:pb-4 flex-1 min-h-0">
         {/* Trade panel */}
         <div className="trade-panel bg-[var(--bg-secondary)] rounded-xl border border-[var(--border)] p-3 sm:p-4 flex flex-col" role="form" aria-label="Trade stocks">
           <div className="flex items-center justify-between mb-3 sm:mb-4">
@@ -223,6 +224,9 @@ export default function PortfolioView() {
             )}
           </div>
         </div>
+
+        {/* Allocation Donut */}
+        <AllocationDonut />
 
         {/* Holdings */}
         <div className="lg:col-span-2 bg-[var(--bg-secondary)] rounded-xl border border-[var(--border)] p-3 sm:p-4 flex flex-col min-h-0">
