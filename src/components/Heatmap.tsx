@@ -30,7 +30,7 @@ interface HeatmapProps {
 export default function Heatmap({ perfDegraded = false }: HeatmapProps) {
   const svgRef = useRef<SVGSVGElement>(null);
   const containerRef = useRef<HTMLDivElement>(null);
-  const { sectors, stocks, refreshMarket, setView, setSelectedSymbol } = useStore();
+  const { sectors, stocks, refreshMarket, setView, setSelectedSymbol, isLoading, isLiveData, lastUpdated } = useStore();
   const [tooltip, setTooltip] = useState<TooltipData | null>(null);
   const [sparklinesEnabled, setSparklinesEnabled] = useState(true);
 
@@ -432,6 +432,35 @@ export default function Heatmap({ perfDegraded = false }: HeatmapProps) {
         />
         {/* Cinematic vignette */}
         <div className="heatmap-vignette" />
+
+        {/* Loading overlay */}
+        {isLoading && (
+          <div className="absolute inset-0 z-30 flex items-center justify-center bg-[var(--bg-primary)]/60 backdrop-blur-sm">
+            <div className="flex flex-col items-center gap-2">
+              <div className="w-8 h-8 border-2 border-blue-500 border-t-transparent rounded-full animate-spin" />
+              <span className="text-xs text-[var(--text-secondary)]">Loading market data…</span>
+            </div>
+          </div>
+        )}
+
+        {/* Data source badge */}
+        {!isLoading && (
+          <div className="absolute top-2 right-2 z-20 flex items-center gap-1.5 px-2 py-1 rounded-md bg-[var(--bg-card)]/80 backdrop-blur-sm border border-[var(--border)]/50 text-[9px]">
+            {isLiveData ? (
+              <span className="flex items-center gap-1 text-emerald-400">
+                <span className="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse" />
+                Live Prices
+              </span>
+            ) : (
+              <span className="text-[var(--text-secondary)]">Simulated</span>
+            )}
+            {lastUpdated && (
+              <span className="text-[var(--text-secondary)] opacity-60">
+                · {new Date(lastUpdated).toLocaleTimeString('en-US', { hour: 'numeric', minute: '2-digit' })}
+              </span>
+            )}
+          </div>
+        )}
 
         {/* Tooltip */}
         {tooltip && (

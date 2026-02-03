@@ -1,7 +1,9 @@
 // Realistic S&P 500 sector and stock data for the treemap
+// Now supports real-time data from Alpaca with fallback to seeded random
 
 import type { Stock, Sector } from '../types';
 import { seededRandom } from '../utils';
+import { fetchSnapshots, type AlpacaSnapshotsResponse } from '../api/alpaca';
 
 const today = new Date();
 const daySeed = today.getFullYear() * 10000 + (today.getMonth() + 1) * 100 + today.getDate();
@@ -87,6 +89,8 @@ const STOCK_DATA: Omit<Stock, 'change' | 'volume'>[] = [
   { symbol: 'SPG', name: 'Simon Property', sector: 'Real Estate', marketCap: 50, price: 156.8 },
 ];
 
+// ── Sync generator (original — used as fallback) ──
+
 export function generateMarketData(customSeed?: number): Stock[] {
   const rand = seededRandom(customSeed ?? daySeed);
 
@@ -104,6 +108,68 @@ export function generateMarketData(customSeed?: number): Stock[] {
 
     return { ...stock, change, volume };
   });
+}
+
+// ── Async fetcher (real Alpaca data) ──
+
+/**
+ * Map Alpaca snapshot data onto our Stock type.
+ * Uses the daily bar for price/change and latest trade volume.
+ * Falls back to static metadata for name/sector/marketCap.
+ */
+function mapSnapshotsToStocks(snapshots: AlpacaSnapshotsResponse): Stock[] {
+  return STOCK_DATA.map(meta => {
+    const snap = snapshots[meta.symbol];
+    if (!snap) {
+      // No data from Alpaca for this symbol (e.g. BRK.B) → use mock
+      const rand = seededRandom(meta.symbol.charCodeAt(0) * 31337 + daySeed);
+      const u1 = rand();
+      const u2 = rand();
+      const normal = Math.sqrt(-2 * Math.log(u1)) * Math.cos(2 * Math.PI * u2);
+      return {
+        ...meta,
+        change: Number((normal * 1.8).toFixed(2)),
+        volume: Math.round(meta.marketCap * 100000 * (0.5 + rand() * 1.5)),
+      };
+    }
+
+    const daily = snap.dailyBar;
+    const prev = snap.prevDailyBar;
+    const price = daily.c || meta.price;
+    const prevClose = prev?.c || daily.o || meta.price;
+    const change = prevClose > 0
+      ? Number((((price - prevClose) / prevClose) * 100).toFixed(2))
+      : 0;
+    const volume = daily.v || 0;
+
+    return {
+      ...meta,
+      price,
+      change,
+      volume,
+    };
+  });
+}
+
+/**
+ * Fetch real market data from Alpaca.
+ * Returns { stocks, isLive } — isLive is true if we got real API data.
+ * Falls back to seeded random data on any failure.
+ */
+export async function fetchMarketData(): Promise<{ stocks: Stock[]; isLive: boolean }> {
+  try {
+    const symbols = STOCK_DATA.map(s => s.symbol);
+    const snapshots = await fetchSnapshots(symbols);
+
+    if (snapshots && Object.keys(snapshots).length > 0) {
+      const stocks = mapSnapshotsToStocks(snapshots);
+      return { stocks, isLive: true };
+    }
+  } catch (err) {
+    console.warn('[MarketData] Failed to fetch live data, using mock:', err);
+  }
+
+  return { stocks: generateMarketData(), isLive: false };
 }
 
 export function groupBySector(stocks: Stock[]): Sector[] {

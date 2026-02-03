@@ -27,6 +27,8 @@ export default function ChartView() {
     setComparisonMode,
     cinematicActive,
     setCinematicActive,
+    isCandlesLive,
+    marketOpen,
   } = useStore();
 
   const [cinematicIndex, setCinematicIndex] = useState(0);
@@ -128,6 +130,18 @@ export default function ChartView() {
                   {periodChange >= 0 ? '+' : ''}{periodChange.toFixed(2)}%
                 </span>
               </div>
+              {/* Data source badges */}
+              {isCandlesLive && (
+                <span className="hidden lg:flex items-center gap-1 text-[10px] text-emerald-400">
+                  <span className="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse" />
+                  Live
+                </span>
+              )}
+              {!marketOpen && (
+                <span className="hidden lg:flex text-[10px] text-amber-400/80 font-mono">
+                  MKT CLOSED
+                </span>
+              )}
             </div>
           )}
         </div>

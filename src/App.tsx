@@ -9,9 +9,14 @@ import { usePerformanceMonitor, FPSBadge } from './components/PerformanceMonitor
 import { useStore } from './store';
 
 export default function App() {
-  const { view, setView, comparisonMode, setComparisonMode, cinematicActive, setCinematicActive } = useStore();
+  const { view, setView, comparisonMode, setComparisonMode, cinematicActive, setCinematicActive, initLiveData } = useStore();
   const [showHelp, setShowHelp] = useState(false);
   const perf = usePerformanceMonitor();
+
+  // Initialize live data from Alpaca on mount
+  useEffect(() => {
+    initLiveData();
+  }, [initLiveData]);
 
   const handleKeyDown = useCallback((e: KeyboardEvent) => {
     // Don't capture when typing in inputs/selects

@@ -1,5 +1,5 @@
 import { useMemo } from 'react';
-import { TrendingUp, BarChart3, PieChart, Briefcase } from 'lucide-react';
+import { TrendingUp, BarChart3, PieChart, Briefcase, Wifi, WifiOff, Clock } from 'lucide-react';
 import { useStore } from '../store';
 import type { View } from '../types';
 
@@ -9,8 +9,13 @@ const NAV_ITEMS: { view: View; label: string; icon: React.ReactNode; key: string
   { view: 'portfolio', label: 'Portfolio', icon: <Briefcase size={16} />, key: '3' },
 ];
 
+function formatTime(ts: number): string {
+  const d = new Date(ts);
+  return d.toLocaleTimeString('en-US', { hour: 'numeric', minute: '2-digit', hour12: true });
+}
+
 export default function Header() {
-  const { view, setView, marketMood, stocks } = useStore();
+  const { view, setView, marketMood, stocks, isLiveData, lastUpdated, marketOpen, isLoading } = useStore();
 
   // Top gainer & loser — single O(n) pass instead of two O(n log n) sorts
   const { topGainer, topLoser } = useMemo(() => {
@@ -91,8 +96,37 @@ export default function Header() {
             {new Date().toLocaleDateString('en-US', { weekday: 'short', month: 'short', day: 'numeric' })}
           </div>
           <div className="flex items-center justify-end gap-1.5 mt-0.5">
-            <span className="text-[10px] text-[var(--text-secondary)] opacity-60">Simulated Data</span>
-            <span className="version-badge text-[9px] font-mono text-[var(--text-secondary)] opacity-50 px-1.5 py-0.5 rounded border border-[var(--border)]/50">v1.0.0</span>
+            {/* Live / Mock data indicator */}
+            {isLoading ? (
+              <span className="text-[10px] text-amber-400 opacity-80 flex items-center gap-1">
+                <span className="inline-block w-1.5 h-1.5 rounded-full bg-amber-400 animate-pulse" />
+                Loading…
+              </span>
+            ) : isLiveData ? (
+              <span className="text-[10px] text-emerald-400 opacity-80 flex items-center gap-1">
+                <Wifi size={9} />
+                Live Data
+              </span>
+            ) : (
+              <span className="text-[10px] text-[var(--text-secondary)] opacity-60 flex items-center gap-1">
+                <WifiOff size={9} />
+                Simulated
+              </span>
+            )}
+            {/* Market open/closed */}
+            {!marketOpen && (
+              <span className="text-[9px] font-mono text-amber-400/70 px-1.5 py-0.5 rounded border border-amber-500/30 bg-amber-500/10">
+                MKT CLOSED
+              </span>
+            )}
+            {/* Last updated */}
+            {lastUpdated && (
+              <span className="text-[9px] text-[var(--text-secondary)] opacity-50 flex items-center gap-0.5">
+                <Clock size={8} />
+                {formatTime(lastUpdated)}
+              </span>
+            )}
+            <span className="version-badge text-[9px] font-mono text-[var(--text-secondary)] opacity-50 px-1.5 py-0.5 rounded border border-[var(--border)]/50">v1.1.0</span>
           </div>
         </div>
       </div>

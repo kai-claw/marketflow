@@ -1,4 +1,5 @@
 // Generate realistic OHLCV candlestick data
+// Now supports real historical bars from Alpaca with fallback to generated data
 
 import type { Candle } from '../types';
 import { seededRandom } from '../utils';
@@ -7,6 +8,7 @@ import {
   DEFAULT_VOLATILITY,
   DEFAULT_TREND,
 } from '../constants';
+import { fetchBars, type AlpacaBar } from '../api/alpaca';
 
 export function generateCandlestickData(
   symbol: string,
@@ -65,6 +67,46 @@ export function generateCandlestickData(
   }
 
   return candles;
+}
+
+// ── Alpaca bar → Candle mapping ──
+
+function mapAlpacaBarToCandle(bar: AlpacaBar): Candle {
+  // Alpaca timestamps are ISO 8601 — extract YYYY-MM-DD
+  const time = bar.t.slice(0, 10);
+  return {
+    time,
+    open: Number(bar.o.toFixed(2)),
+    high: Number(bar.h.toFixed(2)),
+    low: Number(bar.l.toFixed(2)),
+    close: Number(bar.c.toFixed(2)),
+    volume: bar.v,
+  };
+}
+
+/**
+ * Fetch real historical candle data from Alpaca.
+ * Returns null if fetch fails (caller should fall back to generated data).
+ */
+export async function fetchCandlestickData(
+  symbol: string,
+  days: number,
+): Promise<Candle[] | null> {
+  try {
+    // Fetch a bit more than needed to account for weekends/holidays
+    const fetchDays = Math.ceil(days * 1.5);
+    const bars = await fetchBars(symbol, fetchDays, '1Day');
+
+    if (!bars || bars.length === 0) return null;
+
+    const candles = bars.map(mapAlpacaBarToCandle);
+
+    // Trim to requested number of trading days
+    return candles.length > days ? candles.slice(-days) : candles;
+  } catch (err) {
+    console.warn(`[CandlestickData] Failed to fetch bars for ${symbol}:`, err);
+    return null;
+  }
 }
 
 // Re-export indicators for backward compat (existing tests/components import from here)

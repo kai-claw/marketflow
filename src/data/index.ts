@@ -1,13 +1,13 @@
 // Barrel exports for data layer — single import point for all data modules
 
 // Market data
-export { generateMarketData, groupBySector } from './marketData';
+export { generateMarketData, fetchMarketData, groupBySector } from './marketData';
 
 // Candlestick data
-export { generateCandlestickData } from './candlestickData';
+export { generateCandlestickData, fetchCandlestickData } from './candlestickData';
 
 // Candle helpers (shared between store and components)
-export { getCandleData, clearCandleCache, DEFAULT_PRESET, GENERATION_DAYS } from './candleHelpers';
+export { getCandleData, getCandleDataAsync, clearCandleCache, DEFAULT_PRESET, GENERATION_DAYS } from './candleHelpers';
 
 // Technical indicators
 export {
